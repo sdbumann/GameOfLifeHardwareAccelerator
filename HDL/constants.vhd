@@ -13,19 +13,33 @@ use IEEE.std_logic_unsigned.all;
 
 package constants is
 
--- general
-constant CHECKERBOARD_SIZE : natural := 1024;
-constant CHECKERBOARD_SIZE_NUM_BITS : natural := 10;
-constant WORD_LENGTH : natural := 32;
-constant WORD_NUM_BITS : natural := 5;
-
---game of life
-constant SUM_NEIGHBOR_NUM_BITS : natural := 4;
-constant LINE_LENGTH : natural := WORD_LENGTH+2;--because the different lines that are put in the different game_of_life instantiations must overlap
-constant LINE_LENGTH_NUM_BITS : natural := WORD_NUM_BITS+1;
-
---game of life top
-constant NUM_INST : natural := CHECKERBOARD_SIZE/WORD_LENGTH;
-constant NUM_INST_NUM_BITS : natural := 5;
+    -- general
+    constant CHECKERBOARD_SIZE : natural := 1024;
+    constant CHECKERBOARD_SIZE_NUM_BITS : natural := 10;
+    constant WORD_LENGTH : natural := 32;
+    constant WORD_NUM_BITS : natural := 5;
+    
+    --game of life
+    constant SUM_NEIGHBOR_NUM_BITS : natural := 4;
+    constant LINE_LENGTH : natural := WORD_LENGTH+2;--because the different lines that are put in the different game_of_life instantiations must overlap
+    constant LINE_LENGTH_NUM_BITS : natural := WORD_NUM_BITS+1;
+    
+    --game of life top
+    constant NUM_INST : natural := CHECKERBOARD_SIZE/WORD_LENGTH;
+    constant NUM_INST_NUM_BITS : natural := 5;
+    
+    -- video driver
+    constant SYS_DATA_LEN : natural := 32;
+    constant SYS_ADDR_LEN : natural := 32;
+    constant GoL_DATA_LEN : natural := 32; --1024
+    constant GoL_ADDR_LEN : natural := 5; --10
+    
+    constant SCREEN_WIDTH : natural := 16; --change!!!! 320
+    constant SCREEN_HEIGHT : natural := 12; --CHANGE!!! 240
+    
+    constant WINDOW_DIVISION_FACTOR : natural := 1;
+    
+    constant WINDOW_WIDTH : natural := SCREEN_WIDTH/WINDOW_DIVISION_FACTOR;
+    constant WINDOW_HEIGHT : natural := SCREEN_HEIGHT/WINDOW_DIVISION_FACTOR;
 
 end package constants;

@@ -21,31 +21,13 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-
--- Uncomment the following library declaration if using
--- arithmetic functions with Signed or Unsigned values
 use IEEE.NUMERIC_STD.ALL;
 
--- Uncomment the following library declaration if instantiating
--- any Xilinx leaf cells in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
+
+library work;
+use work.constants.all;
 
 entity VideoDriver is
-    generic (
-        SYS_DATA_LEN : natural := 32;
-        SYS_ADDR_LEN : natural := 32;
-        GoL_DATA_LEN : natural := 32; --1024
-        GoL_ADDR_LEN : natural := 5; --10
-        
-        SCREEN_WIDTH : natural := 16; --change!!!! 320
-        SCREEN_HEIGHT : natural := 12; --CHANGE!!! 240
-        
-        WINDOW_DIVISION_FACTOR : natural := 1;
-        
-        WINDOW_WIDTH : natural := SCREEN_WIDTH/WINDOW_DIVISION_FACTOR;
-        WINDOW_HEIGHT : natural := SCREEN_HEIGHT/WINDOW_DIVISION_FACTOR
-    );
     Port ( 
         CLK : in std_logic;
         resetn : in std_logic;
@@ -61,7 +43,8 @@ entity VideoDriver is
         pixelData : out std_logic_vector(SYS_DATA_LEN-1 downto 0);
         pixelAddr : out std_logic_vector(SYS_ADDR_LEN-1 downto 0);
         GoLAddr : out std_logic_vector (GoL_ADDR_LEN-1 downto 0);
-        frameDone : out std_logic
+        frameDone : out std_logic;
+        bramReadEnable : out std_logic
     );
 end VideoDriver;
 
@@ -120,6 +103,7 @@ begin
         pixelData <= (others => '0');
         writeStart <= '0';
         frameDone <= '0';
+        bramReadEnable <= '0';
         case stateP is
             when IDLE => 
                 frameDone <= '1';
@@ -132,8 +116,10 @@ begin
                 stateN <= WAIT_BRAM_READ;
             when WAIT_BRAM_READ =>
                 stateN <= SAVE_LINE;
+                bramReadEnable <= '1';
             when SAVE_LINE =>
                 GoLLineN <= GoLData;
+                bramReadEnable <= '1';
                 stateN <= WRITE_PIXEL;
             when WRITE_PIXEL =>
                 if GoLLineP(to_integer(colCounterP)) = '1' then -- mirrors the board
