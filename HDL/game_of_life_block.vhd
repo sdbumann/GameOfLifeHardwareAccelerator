@@ -153,11 +153,8 @@ begin
             end if;
             
         when SAVE_ROWS =>
-            -- the row "outside" of the playing (row 1024) is only zeros
-            if count_row_p = to_unsigned(CHECKERBOARD_SIZE-1, count_row_p'length) then
-                row_2_n<=(others=>'0');
             -- one needs 2 cycles to read from dram -> thus give tha address and enable='1' here and read in in next state of FSM
-            elsif work_bram_is = '0' then
+            if work_bram_is = '0' then
                 addrb0 <= std_logic_vector(count_row_p(CHECKERBOARD_SIZE_NUM_BITS-1 downto 0)+1);
                 enb0 <= '1';
             else
@@ -181,24 +178,20 @@ begin
             nrState <= EXCHANGE_ROWS;
             
         when EXCHANGE_ROWS =>
-            -- switch and exchange different rows
-            row_0_n <= row_1_p;
-            row_1_n <= row_2_p;
-            if count_row_p = to_unsigned(CHECKERBOARD_SIZE-1, count_row_p'length) then
-                row_2_n<=(others=>'0');
-            elsif work_bram_is = '0' then
---                addrb0 <= std_logic_vector(count_row_p(CHECKERBOARD_SIZE_NUM_BITS-1 downto 0)+1);
---                enb0 <= '1';
-                row_2_n <= dob0;
-            else
---                addrb1 <= std_logic_vector(count_row_p(CHECKERBOARD_SIZE_NUM_BITS-1 downto 0)+1);
---                enb1 <= '1';
-                row_2_n <= dob1;
-            end if;
-            
             if count_row_p = to_unsigned(CHECKERBOARD_SIZE, count_row_p'length) then
                 nrState <= DONE_STATE;
             else
+                -- switch and exchange different rows
+                row_0_n <= row_1_p;
+                row_1_n <= row_2_p;
+                -- the row "outside" of the playing (row 1024) is only zeros
+                if count_row_p = to_unsigned(CHECKERBOARD_SIZE, count_row_p'length)-1 then
+                    row_2_n<=(others=>'0');
+                elsif work_bram_is = '0' then
+                    row_2_n <= dob0;
+                else
+                    row_2_n <= dob1;
+                end if;
                 nrState <= START_GOL_FULL_ROW_STATE;
             end if;
             
