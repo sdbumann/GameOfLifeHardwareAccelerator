@@ -31,11 +31,11 @@ package constants is
     -- video driver
     constant SYS_DATA_LEN : natural := 32;
     constant SYS_ADDR_LEN : natural := 32;
-    constant GoL_DATA_LEN : natural := 32; --1024
-    constant GoL_ADDR_LEN : natural := 5; --10
+    constant GoL_DATA_LEN : natural := 1024; --1024
+    constant GoL_ADDR_LEN : natural := 10; --10
     
-    constant SCREEN_WIDTH : natural := 16; --change!!!! 320
-    constant SCREEN_HEIGHT : natural := 12; --CHANGE!!! 240
+    constant SCREEN_WIDTH : natural := 320; --change!!!! 320
+    constant SCREEN_HEIGHT : natural := 240; --CHANGE!!! 240
     
     constant WINDOW_DIVISION_FACTOR : natural := 1;
     
