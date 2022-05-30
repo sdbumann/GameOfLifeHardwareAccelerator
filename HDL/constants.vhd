@@ -34,8 +34,8 @@ package constants is
     constant GoL_DATA_LEN : natural := 1024; --1024
     constant GoL_ADDR_LEN : natural := 10; --10
     
-    constant SCREEN_WIDTH : natural := 320; --change!!!! 320
-    constant SCREEN_HEIGHT : natural := 240; --CHANGE!!! 240
+    constant SCREEN_WIDTH : natural := 640; --change!!!! 320
+    constant SCREEN_HEIGHT : natural := 320; --CHANGE!!! 240
     
     constant WINDOW_DIVISION_FACTOR : natural := 1;
     

@@ -49,7 +49,7 @@ entity fsm_top is
         -- fsm_top signals        
         accelStart : in std_logic;
         accelDone : out std_logic;
-        accelStop : out std_logic;
+        accelStop : in std_logic;
         -- init Block signals
         GameOfLifeAddress : in std_logic_vector(C_M00_AXI_ADDR_WIDTH-1 downto 0);
         -- Video Driver signals
