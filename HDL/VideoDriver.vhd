@@ -28,23 +28,43 @@ library work;
 use work.constants.all;
 
 entity VideoDriver is
+    generic (
+        -- Parameters of the AXI master bus interface:
+        C_M00_AXI_ADDR_WIDTH  : integer := 32;
+        C_M00_AXI_DATA_WIDTH  : integer := 32
+    );
     Port ( 
         CLK : in std_logic;
         resetn : in std_logic;
         --zoomFact : in std_logic_vector(SYS_DATA_LEN-1 downto 0);
-        GoLData : in std_logic_vector(GoL_DATA_LEN-1 downto 0);
         windowTop : in std_logic_vector(SYS_DATA_LEN-1 downto 0); -- with respect to the 1024 x 1024 grid
         windowLeft : in std_logic_vector(SYS_DATA_LEN-1 downto 0); -- with respect to the 1024 x 1024 grid
-        writeReady : in std_logic;
+        
         GoLReady : in std_logic;
         frameBufferAddr : in std_logic_vector(SYS_DATA_LEN-1 downto 0);
         
-        writeStart : out std_logic;
-        pixelData : out std_logic_vector(SYS_DATA_LEN-1 downto 0);
-        pixelAddr : out std_logic_vector(SYS_ADDR_LEN-1 downto 0);
-        GoLAddr : out std_logic_vector (GoL_ADDR_LEN-1 downto 0);
+        
         frameDone : out std_logic;
-        bramReadEnable : out std_logic
+        
+        master_start : out std_logic;
+        master_done : in std_logic;
+        master_address : out std_logic_vector(C_M00_AXI_ADDR_WIDTH-1 downto 0);
+        master_dataWrite : out std_logic_vector(C_M00_AXI_DATA_WIDTH-1 downto 0);
+        master_readWrite : out std_logic;
+            
+        
+        -- Control signals for bram0
+        enb0 : out std_logic;
+        addrb0 : out std_logic_vector(9 downto 0);
+        dob0 : in std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
+        
+        -- Control signals for bram1
+
+        enb1 : out std_logic;
+        addrb1 : out std_logic_vector(9 downto 0);
+        dob1 : in std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
+
+        work_bram_is : in std_logic
     );
 end VideoDriver;
 
@@ -62,6 +82,14 @@ architecture rtl of VideoDriver is
     
     signal lineCounterPResized : unsigned(SYS_DATA_LEN-1 downto 0);
     
+    signal GoLData :  std_logic_vector(GoL_DATA_LEN-1 downto 0);
+    signal bramReadEnable : std_logic;
+    
+    signal writeReady : std_logic;
+    signal writeStart :  std_logic;
+    signal pixelData :  std_logic_vector(SYS_DATA_LEN-1 downto 0);
+    signal pixelAddr :  std_logic_vector(SYS_ADDR_LEN-1 downto 0);
+    
 begin
     windowTopRegulated <= to_unsigned(WINDOW_HEIGHT, windowTopRegulated'length) 
                             when unsigned(windowTop) > WINDOW_HEIGHT else
@@ -72,7 +100,29 @@ begin
     --lineCounterPResized <=  resize(lineCounterP,frameBufferAddr'length)*to_unsigned(WINDOW_WIDTH,frameBufferAddr'length);                              
     
     pixelAddr <= std_logic_vector(unsigned(frameBufferAddr) + lineCounterP*WINDOW_WIDTH + resize(colCounterP,frameBufferAddr'length));
-    GoLAddr <= std_logic_vector(GoLAddrP);
+    
+    writeReady <= master_done;
+    master_start <= writeStart;
+    master_address <= pixelAddr;
+    master_dataWrite <= pixelData;
+    master_readWrite <= '1'; -- the video driver always writes
+    
+    bram_multiplexing: process(all)
+    begin
+        enb0 <= '0';
+        addrb0 <= (others => '0');
+        enb1 <= '0';
+        addrb1 <= (others => '0');
+        if work_bram_is = '1' then --potentatially change to 1
+            enb1 <= bramReadEnable;
+            addrb1 <= std_logic_vector(GoLAddrP);
+            GoLData <= dob1;
+        else
+            enb0 <= bramReadEnable;
+            addrb0 <= std_logic_vector(GoLAddrP);
+            GoLData <= dob0;
+        end if;
+    end process;
     
     registers: process (CLK,resetn)
     begin

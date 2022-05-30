@@ -89,6 +89,7 @@ use work.constants.all;
 
 architecture rtl of top_level is
   signal iClk : std_logic; -- Common internal CLK ==> m00_axi_aclk
+  signal iResetn : std_logic;
   -- Control signals comming/going to the register file.
   signal slaveStart, slaveStop, slaveDone: std_logic;-- for slave <-> controller signals Start, Done and modified
   signal slaveGameOfLifeAddress : std_logic_vector(C_S00_AXI_DATA_WIDTH-1 downto 0);-- for slave <-> controller signals
@@ -101,25 +102,12 @@ architecture rtl of top_level is
   signal masterAddress : std_logic_vector(C_M00_AXI_ADDR_WIDTH-1 downto 0);-- for master <-> controller signals
   signal masterDataWrite, masterDataRead : std_logic_vector(C_M00_AXI_ADDR_WIDTH-1 downto 0);-- for master <-> controller signals data to write and data read
   -- Control signals for bram0
-  signal ena0 : std_logic;
-  signal enb0 : std_logic;
-  signal wea0 : std_logic;
-  signal addra0 : std_logic_vector(9 downto 0);
-  signal addrb0 : std_logic_vector(9 downto 0);
-  signal dia0 : std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
-  signal dob0 : std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
-  -- Control signals for bram1
-  signal ena1 : std_logic;
-  signal enb1 : std_logic;
-  signal wea1 : std_logic;
-  signal addra1 : std_logic_vector(9 downto 0);
-  signal addrb1 : std_logic_vector(9 downto 0);
-  signal dia1 : std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
-  signal dob1 : std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
+  
 begin
 
   -- Internal signals.
   iClk <= m00_axi_aclk;
+  iResetn <= m00_axi_aresetn;
 
   -- Memory reader/writer (master)
   master_inst : entity work.master(rtl)
@@ -152,14 +140,32 @@ begin
       frame_buffer_address => slaveFrameBufferAddress, window_top => slaveWindowTop, window_left => slaveWindowLeft
     );
 
-  bram0_inst : entity work.simple_dual_one_clock(syn)
-    port map(clk => iClk, ena => ena0, enb => enb0, wea => wea0, addra => addra0, addrb => addrb0, dia => dia0,
-      dob => dob0
-    );
-  bram1_inst : entity work.simple_dual_one_clock(syn)
-    port map(clk => iClk, ena => ena1, enb => enb1, wea => wea1, addra => addra1, addrb => addrb1, dia => dia1,
-      dob => dob1
-    );
+    fsm_top_inst : entity work.fsm_top(rt)
+        port map(
+            clk => iClk,
+            resetn => iResetn,
+           
+    -- AXI4 signals
+        -- master
+            master_start => masterStart,
+            master_done => masterDone,
+            master_readWrite => masterReadWrite,
+            master_address => masterAddress,
+            master_dataRead => masterDataRead,
+            master_dataWrite => masterDataWrite,
+            
+        -- slave
+            -- fsm_top signals        
+            accelStart => slaveStart,
+            accelDone => slaveDone,
+            accelStop => slaveStop,
+            -- init Block signals
+            GameOfLifeAddress =>  slaveGameOfLifeAddress,
+            -- Video Driver signals
+            windowTop => slaveWindowTop,
+            windowLeft  => slaveWindowLeft,
+            frameBufferAddr =>  slaveFrameBufferAddress
+      );
 
 end rtl;
 
