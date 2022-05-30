@@ -140,7 +140,7 @@ begin
       frame_buffer_address => slaveFrameBufferAddress, window_top => slaveWindowTop, window_left => slaveWindowLeft
     );
 
-    fsm_top_inst : entity work.fsm_top(rt)
+    fsm_top_inst : entity work.fsm_top(rtl)
         port map(
             clk => iClk,
             resetn => iResetn,
