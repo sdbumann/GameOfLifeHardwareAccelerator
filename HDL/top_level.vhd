@@ -76,7 +76,13 @@ entity top_level is
     m00_axi_rready : out std_logic;
     -- Status of the read transfer.
     m00_axi_rresp : in std_logic_vector(1 downto 0);
-    m00_axi_rdata : in std_logic_vector(C_M00_AXI_DATA_WIDTH-1 downto 0)
+    m00_axi_rdata : in std_logic_vector(C_M00_AXI_DATA_WIDTH-1 downto 0);
+    
+--ILA debugging signals
+    fsm_top_state : out std_logic_vector(2 downto 0);
+    AXI_master_done : out std_logic;
+    count_line_save_dram : out unsigned(NUM_INST_NUM_BITS downto 0);
+    count_row_save_dram : out unsigned(CHECKERBOARD_SIZE_NUM_BITS downto 0)
   );
 end top_level;
 
@@ -164,9 +170,13 @@ begin
             -- Video Driver signals
             windowTop => slaveWindowTop,
             windowLeft  => slaveWindowLeft,
-            frameBufferAddr =>  slaveFrameBufferAddress
+            frameBufferAddr =>  slaveFrameBufferAddress,
+            fsm_top_state => fsm_top_state,
+            count_line_save_dram => count_line_save_dram,
+            count_row_save_dram => count_row_save_dram
       );
-
+    
+    AXI_master_done <= masterDone;
 end rtl;
 
 

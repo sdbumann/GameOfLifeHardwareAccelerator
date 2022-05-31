@@ -55,7 +55,12 @@ entity fsm_top is
         -- Video Driver signals
         windowTop : in std_logic_vector(SYS_DATA_LEN-1 downto 0); -- with respect to the 1024 x 1024 grid
         windowLeft : in std_logic_vector(SYS_DATA_LEN-1 downto 0); -- with respect to the 1024 x 1024 grid
-        frameBufferAddr : in std_logic_vector(SYS_DATA_LEN-1 downto 0)
+        frameBufferAddr : in std_logic_vector(SYS_DATA_LEN-1 downto 0);
+        
+    -- ILA debug signals
+        fsm_top_state : out std_logic_vector(2 downto 0);
+        count_line_save_dram : out unsigned(NUM_INST_NUM_BITS downto 0);
+        count_row_save_dram : out unsigned(CHECKERBOARD_SIZE_NUM_BITS downto 0)
     );
 end fsm_top;
 
@@ -347,7 +352,10 @@ init_block_inst : entity work.init_block(rtl)
     start => SaveDramStart,
     done => SaveDramDone,
     GameOfLifeAddress => GameOfLifeAddress,
-    work_bram_is => work_bram_is
+    work_bram_is => work_bram_is,
+    
+    count_line_save_dram => count_line_save_dram,
+    count_row_save_dram => count_row_save_dram
     );
     
 --======================================================
@@ -436,6 +444,56 @@ init_block_inst : entity work.init_block(rtl)
     work_bram_is <= workMemP;
     
 -- FSM_TOP
+--    fsm_top: process(all) is
+--    begin --IDLE, INIT_BLOCK, GAME_OF_LIFE_BLOCK, VIDEO_DRIVER_BLOCK, DRAM_BLOCK
+--        stateN <= stateP;
+--        workMemN <= workMemP;
+--        initBlockStart <= '0';
+--        GoLBlockStart <= '0';
+--        VideoDriverStart <= '0';
+--        SaveDramStart <= '0';
+--        accelDone <= '0';
+--        case stateP is
+--            when IDLE =>
+--                accelDone <= '1';
+--                if accelStart = '1' then
+--                    stateN <= INIT_BLOCK;
+--                    initBlockStart <= '1';
+--                end if;
+--            when INIT_BLOCK =>
+--                if initBlockDone = '1' then
+--                    GoLBlockStart <= '1';
+--                    stateN <= GAME_OF_LIFE_BLOCK;
+--                    workMemN <= '0';
+--                end if;
+--            when GAME_OF_LIFE_BLOCK =>
+--                if GoLBlockDone = '1' then
+--                    VideoDriverStart <= '1';
+--                    stateN <= VIDEO_DRIVER_BLOCK;
+--                end if;
+--            when VIDEO_DRIVER_BLOCK =>
+--                if VideoDriverDone = '1' then
+--                    if accelStop = '1' then
+--                        SaveDramStart <= '1';
+--                        stateN <= SAVE_DRAM_BLOCK;
+--                    elsif accelStart = '1' then
+--                        stateN <= GAME_OF_LIFE_BLOCK;
+--                        GoLBlockStart <= '1';
+--                        workMemN <= '1' when workMemP = '0' else '0';
+--                    else
+--                        stateN <= IDLE;
+--                    end if;
+--                end if;
+--            when SAVE_DRAM_BLOCK =>
+--                if SaveDramDone = '1' then
+--                    stateN <= IDLE;
+--                end if;
+--            when OTHERS =>
+--                stateN <= IDLE;
+--        end case;
+--    end process;
+    
+    
     fsm_top: process(all) is
     begin --IDLE, INIT_BLOCK, GAME_OF_LIFE_BLOCK, VIDEO_DRIVER_BLOCK, DRAM_BLOCK
         stateN <= stateP;
@@ -460,23 +518,10 @@ init_block_inst : entity work.init_block(rtl)
                 end if;
             when GAME_OF_LIFE_BLOCK =>
                 if GoLBlockDone = '1' then
-                    VideoDriverStart <= '1';
-                    stateN <= VIDEO_DRIVER_BLOCK;
+                    SaveDramStart <= '1';
+                    stateN <= SAVE_DRAM_BLOCK;
                 end if;
-            when VIDEO_DRIVER_BLOCK =>
-                if VideoDriverDone = '1' then
-                    if accelStop = '1' and accelStart = '0' then
-                        SaveDramStart <= '1';
-                        stateN <= SAVE_DRAM_BLOCK;
-                    elsif accelStop = '0' and accelStart = '1' then
-                        stateN <= GAME_OF_LIFE_BLOCK;
-                        GoLBlockStart <= '1';
-                        workMemN <= '1' when workMemP = '0' else '0';
-                    else
-                        stateN <= IDLE;
-                    end if;
-                end if;
-            when SAVE_DRAM_BLOCK =>
+           when SAVE_DRAM_BLOCK =>
                 if SaveDramDone = '1' then
                     stateN <= IDLE;
                 end if;
@@ -484,4 +529,11 @@ init_block_inst : entity work.init_block(rtl)
                 stateN <= IDLE;
         end case;
     end process;
+    
+    fsm_top_state <= "010" when stateP = INIT_BLOCK else
+                     "011" when stateP = GAME_OF_LIFE_BLOCK else
+                     "100" when stateP = VIDEO_DRIVER_BLOCK else
+                     "101" when stateP = SAVE_DRAM_BLOCK else
+                     "001" when stateP = IDLE else
+                     "000";
 end rtl;

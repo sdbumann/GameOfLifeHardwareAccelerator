@@ -168,7 +168,7 @@ begin
                 bramReadEnable <= '1';
                 stateN <= WRITE_PIXEL;
             when WRITE_PIXEL =>
-                if GoLLineP(to_integer(colCounterP)) = '1' then -- mirrors the board
+                if GoLLineP(to_integer(windowTopRegulated + colCounterP)) = '1' then -- mirrors the board
                     pixelData <= x"00"&x"FF"&x"FF"&x"FF";
                 else
                     pixelData <= x"00"&x"FF"&x"00"&x"FF";

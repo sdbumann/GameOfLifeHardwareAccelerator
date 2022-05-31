@@ -131,8 +131,8 @@ begin
 
     windowTop <= (others => '0');
     windowLeft <= (others => '0');
-    GameOfLifeAddress <= (others => '0');
-    frameBufferAddr <= (others => '0');
+    GameOfLifeAddress <= x"16980000";
+    frameBufferAddr <= std_logic_vector(to_unsigned(100,frameBufferAddr'length));
     
     
     master_done <= '1';
