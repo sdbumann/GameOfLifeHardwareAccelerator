@@ -136,12 +136,13 @@ begin
     
     
     master_done <= '1';
-    master_dataRead <= (others => '1');
-
+    master_dataRead <= std_logic_vector(to_unsigned(1,master_dataRead'length));
+    
     accelStart <= '1';
-    accelStop <= '0';
+    accelStop <= '1';
     
     wait until accelDone = '1';
+    wait for 3*CLK_PER;
     stop(0);
   end process;
 end tb;

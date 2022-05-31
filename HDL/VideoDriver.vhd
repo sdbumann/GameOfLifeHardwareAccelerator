@@ -79,9 +79,6 @@ architecture rtl of VideoDriver is
     signal GoLLineP, GoLLineN : std_logic_vector(GoL_DATA_LEN-1 downto 0);
     signal GoLAddrP, GoLAddrN : unsigned (GoL_ADDR_LEN-1 downto 0);
     
-    
-    signal lineCounterPResized : unsigned(SYS_DATA_LEN-1 downto 0);
-    
     signal GoLData :  std_logic_vector(GoL_DATA_LEN-1 downto 0);
     signal bramReadEnable : std_logic;
     
@@ -97,9 +94,8 @@ begin
     windowLeftRegulated <= to_unsigned(GoL_DATA_LEN - WINDOW_WIDTH, windowLeftRegulated'length) 
                             when unsigned(windowLeft) > GoL_DATA_LEN - WINDOW_WIDTH else
                           unsigned(windowLeft(GoL_ADDR_LEN-1 downto 0));   
-    --lineCounterPResized <=  resize(lineCounterP,frameBufferAddr'length)*to_unsigned(WINDOW_WIDTH,frameBufferAddr'length);                              
-    
-    pixelAddr <= std_logic_vector(unsigned(frameBufferAddr) + lineCounterP*WINDOW_WIDTH + resize(colCounterP,frameBufferAddr'length));
+
+    pixelAddr <= std_logic_vector(unsigned(frameBufferAddr) + shift_left("00000"&(lineCounterP*WINDOW_WIDTH + colCounterP),2));
     
     writeReady <= master_done;
     master_start <= writeStart;
@@ -113,7 +109,7 @@ begin
         addrb0 <= (others => '0');
         enb1 <= '0';
         addrb1 <= (others => '0');
-        if work_bram_is = '1' then --potentatially change to 1
+        if work_bram_is = '0' then 
             enb1 <= bramReadEnable;
             addrb1 <= std_logic_vector(GoLAddrP);
             GoLData <= dob1;
@@ -179,9 +175,9 @@ begin
                 end if;
                 writeStart <= '1';
                 if writeReady = '1' then
-                    if  to_integer(colCounterP) = 2 ** colCounterP'length - 1 then
+                    if  to_integer(colCounterP) = WINDOW_WIDTH - 1 then
                         colCounterN <= (others => '0');
-                        if to_integer(lineCounterP) = 2 ** lineCounterP'length - 1 then
+                        if to_integer(lineCounterP) = WINDOW_HEIGHT - 1 then
                             lineCounterN <= (others => '0');
                             stateN <= IDLE;
                         else

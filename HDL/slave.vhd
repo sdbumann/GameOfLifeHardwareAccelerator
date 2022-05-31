@@ -102,6 +102,8 @@ begin
     s00_axi_wready <= '0';  -- We limit that we accept the data only if the address is also on the bus, both at the same time.
     s00_axi_arready <= '0';
     s00_axi_awready <= '0';
+    start <= '0';
+    stop <= '0';
 	   
     case state is
       when IDLE =>

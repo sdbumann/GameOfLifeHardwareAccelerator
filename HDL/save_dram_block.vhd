@@ -114,6 +114,7 @@ begin
     master_address <=  (others => '0');
     master_readWrite <= '0'; --we want to read
     master_start<='0';
+    master_dataWrite <= (others => '0');
     
     done <= '0';
 

@@ -69,7 +69,7 @@ architecture rtl of fsm_top is
 -- bram control signals ----------------------------------------------------
     -- Control signals for bram0
     signal ena0 : std_logic;
-    signal wea0 : std_logic;
+    signal wea0 : std_logic_vector(0 downto 0);
     signal addra0 : std_logic_vector(9 downto 0);
     signal dia0 : std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
     signal enb0 : std_logic;
@@ -78,7 +78,7 @@ architecture rtl of fsm_top is
     
     -- Control signals for bram1
     signal ena1 : std_logic;
-    signal wea1 : std_logic;
+    signal wea1 : std_logic_vector(0 downto 0);
     signal addra1 : std_logic_vector(9 downto 0);
     signal dia1 : std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
     signal enb1 : std_logic;
@@ -104,8 +104,6 @@ architecture rtl of fsm_top is
     signal wea0_init_block : std_logic;
     signal addra0_init_block : std_logic_vector(9 downto 0);
     signal dia0_init_block : std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
-    signal enb0_init_block : std_logic; 
-    signal addrb0_init_block : std_logic_vector(9 downto 0);
 
     
     
@@ -173,6 +171,21 @@ architecture rtl of fsm_top is
     signal dia1_save_dram_block :  std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
     signal enb1_save_dram_block :  std_logic;
     signal addrb1_save_dram_block :  std_logic_vector(9 downto 0);
+    
+-- bram
+    COMPONENT blk_mem_gen_0
+        PORT (
+        clka : IN STD_LOGIC;
+        ena : IN STD_LOGIC;
+        wea : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+        addra : IN STD_LOGIC_VECTOR(9 DOWNTO 0);
+        dina : IN STD_LOGIC_VECTOR(1023 DOWNTO 0);
+        clkb : IN STD_LOGIC;
+        enb : IN STD_LOGIC;
+        addrb : IN STD_LOGIC_VECTOR(9 DOWNTO 0);
+        doutb : OUT STD_LOGIC_VECTOR(1023 DOWNTO 0)
+        );
+    END COMPONENT;
    
 begin
 -- COMPONENT INSTANTIATIONS
@@ -203,14 +216,42 @@ init_block_inst : entity work.init_block(rtl)
         init_row_2_out => init_row_2
     );
     
-    bram0_inst : entity work.simple_dual_one_clock(syn)
-    port map(clk => clk, ena => ena0, enb => enb0, wea => wea0, addra => addra0, addrb => addrb0, dia => dia0,
-      dob => dob0
+--      PORT (
+--    clka : IN STD_LOGIC;
+--    ena : IN STD_LOGIC;
+--    wea : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+--    addra : IN STD_LOGIC_VECTOR(9 DOWNTO 0);
+--    dina : IN STD_LOGIC_VECTOR(1023 DOWNTO 0);
+--    clkb : IN STD_LOGIC;
+--    enb : IN STD_LOGIC;
+--    addrb : IN STD_LOGIC_VECTOR(9 DOWNTO 0);
+--    doutb : OUT STD_LOGIC_VECTOR(1023 DOWNTO 0)
+--  );
+
+    bram0_inst : blk_mem_gen_0
+    PORT MAP (
+        clka => clk,
+        ena => ena0,
+        wea => wea0,
+        addra => addra0,
+        dina => dia0,
+        clkb => clk,
+        enb => enb0,
+        addrb => addrb0,
+        doutb => dob0
     );
     
-    bram1_inst : entity work.simple_dual_one_clock(syn)
-    port map(clk => clk, ena => ena1, enb => enb1, wea => wea1, addra => addra1, addrb => addrb1, dia => dia1,
-      dob => dob1
+    bram1_inst : blk_mem_gen_0
+    PORT MAP (
+        clka => clk,
+        ena => ena1,
+        wea => wea1,
+        addra => addra1,
+        dina => dia1,
+        clkb => clk,
+        enb => enb1,
+        addrb => addrb1,
+        doutb => dob1
     );
     
     game_of_life_block_inst: entity work.game_of_life_block(rtl)
@@ -316,7 +357,7 @@ init_block_inst : entity work.init_block(rtl)
     ena1    <=  ena1_gol_block when stateP = GAME_OF_LIFE_BLOCK else
                 ena1_save_dram_block when stateP = SAVE_DRAM_BLOCK else
                 '0';
-    wea1    <=  wea1_gol_block when stateP = GAME_OF_LIFE_BLOCK else
+    wea1(0) <=  wea1_gol_block when stateP = GAME_OF_LIFE_BLOCK else
                 wea1_save_dram_block when stateP = SAVE_DRAM_BLOCK else
                 '0';
     addra1  <=  addra1_gol_block when stateP = GAME_OF_LIFE_BLOCK else
@@ -340,7 +381,7 @@ init_block_inst : entity work.init_block(rtl)
                 ena0_init_block when stateP = INIT_BLOCK else
                 ena0_save_dram_block when stateP = SAVE_DRAM_BLOCK else
                 '0';
-    wea0    <=  wea0_gol_block when stateP = GAME_OF_LIFE_BLOCK else
+    wea0(0) <=  wea0_gol_block when stateP = GAME_OF_LIFE_BLOCK else
                 wea0_init_block when stateP = INIT_BLOCK else
                 wea0_save_dram_block when stateP = SAVE_DRAM_BLOCK else
                 '0';
@@ -353,12 +394,10 @@ init_block_inst : entity work.init_block(rtl)
                 dia0_save_dram_block when stateP = SAVE_DRAM_BLOCK else
                 (others=>'0');
     enb0    <=  enb0_gol_block when stateP = GAME_OF_LIFE_BLOCK else
-                enb0_init_block when stateP = INIT_BLOCK else
                 enb0_save_dram_block when stateP = SAVE_DRAM_BLOCK else
                 enb0_video_driver_block when stateP = VIDEO_DRIVER_BLOCK else
                 '0';
     addrb0  <=  addrb0_gol_block when stateP = GAME_OF_LIFE_BLOCK else
-                addrb0_init_block when stateP = INIT_BLOCK else
                 addrb0_save_dram_block when stateP = SAVE_DRAM_BLOCK else
                 addrb0_video_driver_block when stateP = VIDEO_DRIVER_BLOCK else
                 (others=>'0');
@@ -417,6 +456,7 @@ init_block_inst : entity work.init_block(rtl)
                 if initBlockDone = '1' then
                     GoLBlockStart <= '1';
                     stateN <= GAME_OF_LIFE_BLOCK;
+                    workMemN <= '0';
                 end if;
             when GAME_OF_LIFE_BLOCK =>
                 if GoLBlockDone = '1' then
