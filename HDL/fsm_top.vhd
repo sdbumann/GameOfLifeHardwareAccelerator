@@ -443,7 +443,7 @@ init_block_inst : entity work.init_block(rtl)
         initBlockStart <= '0';
         GoLBlockStart <= '0';
         VideoDriverStart <= '0';
-        SaveDramStart <= '1';
+        SaveDramStart <= '0';
         accelDone <= '0';
         case stateP is
             when IDLE =>
@@ -471,7 +471,7 @@ init_block_inst : entity work.init_block(rtl)
                     elsif accelStop = '0' and accelStart = '1' then
                         stateN <= GAME_OF_LIFE_BLOCK;
                         GoLBlockStart <= '1';
-                        workMemN <= not workMemP;
+                        workMemN <= '1' when workMemP = '0' else '0';
                     else
                         stateN <= IDLE;
                     end if;

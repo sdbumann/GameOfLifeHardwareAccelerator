@@ -139,6 +139,11 @@ begin
     master_dataRead <= std_logic_vector(to_unsigned(1,master_dataRead'length));
     
     accelStart <= '1';
+    accelStop <= '0';
+    
+    wait for 5*CLK_PER;
+    
+    accelStart <= '0';
     accelStop <= '1';
     
     wait until accelDone = '1';

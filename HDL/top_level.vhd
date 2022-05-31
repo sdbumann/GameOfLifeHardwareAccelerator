@@ -136,7 +136,7 @@ begin
       s00_axi_arprot => s00_axi_arprot, s00_axi_arvalid => s00_axi_arvalid, s00_axi_arready => s00_axi_arready,
       s00_axi_rdata => s00_axi_rdata, s00_axi_rresp => s00_axi_rresp, s00_axi_rvalid => s00_axi_rvalid,
       s00_axi_rready => s00_axi_rready,
-      start => slaveStart, stop => slaveStop, done => slaveDone, game_of_life_address => slaveGameOfLifeAddress,
+      start => slaveStart, stopGoL => slaveStop, done => slaveDone, game_of_life_address => slaveGameOfLifeAddress,
       frame_buffer_address => slaveFrameBufferAddress, window_top => slaveWindowTop, window_left => slaveWindowLeft
     );
 

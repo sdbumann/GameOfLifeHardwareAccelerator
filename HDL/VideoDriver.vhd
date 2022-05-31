@@ -169,9 +169,9 @@ begin
                 stateN <= WRITE_PIXEL;
             when WRITE_PIXEL =>
                 if GoLLineP(to_integer(colCounterP)) = '1' then -- mirrors the board
-                    pixelData <= x"FF"&x"FF"&x"FF"&x"00";
+                    pixelData <= x"00"&x"FF"&x"FF"&x"FF";
                 else
-                    pixelData <= x"00"&x"FF"&x"00"&x"00";
+                    pixelData <= x"00"&x"FF"&x"00"&x"FF";
                 end if;
                 writeStart <= '1';
                 if writeReady = '1' then
