@@ -135,6 +135,7 @@ begin
             end if;
         
         when READ_DRAM =>
+            master_address <= std_logic_vector(unsigned(GameOfLifeAddress) + WORD_LENGTH/8*count_line_p + count_row_p * CHECKERBOARD_SIZE/8);
             row_temp_n(CHECKERBOARD_SIZE-1-WORD_LENGTH*to_integer(count_line_p) downto CHECKERBOARD_SIZE-1-WORD_LENGTH*to_integer(count_line_p)-WORD_LENGTH+1) <= master_dataRead;
             if count_line_done = '1' then
                 count_line_reset <= '1';
