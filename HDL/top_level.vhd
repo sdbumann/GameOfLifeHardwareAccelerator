@@ -81,7 +81,7 @@ entity top_level is
 --ILA debugging signals
     fsm_top_state : out std_logic_vector(2 downto 0);
     AXI_master_done : out std_logic;
-    count_line_save_dram : out unsigned(NUM_INST_NUM_BITS downto 0);
+    count_line_save_dram : out unsigned(NUM_INST_NUM_BITS-1 downto 0);
     count_row_save_dram : out unsigned(CHECKERBOARD_SIZE_NUM_BITS downto 0)
   );
 end top_level;

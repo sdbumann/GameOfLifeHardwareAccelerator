@@ -74,7 +74,7 @@ architecture rtl of VideoDriver is
     
     signal lineCounterP, lineCounterN, colCounterP, colCounterN : unsigned(GoL_ADDR_LEN-1 downto 0);
     
-    type STATE is (IDLE, WAIT_BRAM_READ, LOAD_LINE, SAVE_LINE, WRITE_PIXEL);
+    type STATE is (IDLE, WAIT_BRAM_READ, LOAD_LINE, SAVE_LINE, WRITE_PIXEL_WAIT, WRITE_PIXEL);
     signal stateP, stateN : STATE;
     signal GoLLineP, GoLLineN : std_logic_vector(GoL_DATA_LEN-1 downto 0);
     signal GoLAddrP, GoLAddrN : unsigned (GoL_ADDR_LEN-1 downto 0);
@@ -167,6 +167,14 @@ begin
                 GoLLineN <= GoLData;
                 bramReadEnable <= '1';
                 stateN <= WRITE_PIXEL;
+            when WRITE_PIXEL_WAIT =>
+                if GoLLineP(to_integer(windowTopRegulated + colCounterP)) = '1' then -- mirrors the board
+                    pixelData <= x"00"&x"FF"&x"FF"&x"FF";
+                else
+                    pixelData <= x"00"&x"FF"&x"00"&x"FF";
+                end if;
+                writeStart <= '1';
+                stateN <= WRITE_PIXEL;            
             when WRITE_PIXEL =>
                 if GoLLineP(to_integer(windowTopRegulated + colCounterP)) = '1' then -- mirrors the board
                     pixelData <= x"00"&x"FF"&x"FF"&x"FF";
