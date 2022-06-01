@@ -91,7 +91,7 @@ entity top_level is
     
     count_line_init : out unsigned(NUM_INST_NUM_BITS-1 downto 0);
     count_row_init : out unsigned(CHECKERBOARD_SIZE_NUM_BITS downto 0);
-    init_row_0_init, init_row_1_init, init_row_2_init : out std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
+--    init_row_0_init, init_row_1_init, init_row_2_init : out std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
             
     bram_ena0 : out std_logic;
     bram_wea0 : out std_logic_vector(0 downto 0);
@@ -207,9 +207,9 @@ begin
             lineCounter_video_driver => lineCounter_video_driver,            
             count_line_init => count_line_init,
             count_row_init => count_row_init,
-            init_row_0_init => init_row_0_init,
-            init_row_1_init => init_row_1_init,
-            init_row_2_init => init_row_2_init,
+--            init_row_0_init => init_row_0_init,
+--            init_row_1_init => init_row_1_init,
+--            init_row_2_init => init_row_2_init,
             
             bram_ena0 => bram_ena0,
             bram_wea0 => bram_wea0,
