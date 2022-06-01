@@ -52,7 +52,7 @@ entity save_dram_block is
     
     
 -- ILA signals
-    count_line_save_dram : out unsigned(NUM_INST_NUM_BITS downto 0);
+    count_line_save_dram : out unsigned(NUM_INST_NUM_BITS-1 downto 0);
     count_row_save_dram : out unsigned(CHECKERBOARD_SIZE_NUM_BITS downto 0)
   );
 end save_dram_block;
@@ -65,12 +65,12 @@ library work;
 use work.constants.all;
 
 architecture rtl of save_dram_block is
-  type TState is (IDLE, READ_BRAM_WAIT, READ_BRAM, WRITE_DRAM, WRITE_DRAM_INCREMENT);
+  type TState is (IDLE, READ_BRAM_WAIT, READ_BRAM, WRITE_DRAM);
   signal rState, nrState : TState;
   signal row_p, row_n : std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
   signal count_row_p, count_row_n : unsigned(CHECKERBOARD_SIZE_NUM_BITS downto 0);
   signal count_row_en, count_row_reset, count_row_done : std_logic;
-  signal count_line_p, count_line_n : unsigned(NUM_INST_NUM_BITS downto 0);
+  signal count_line_p, count_line_n : unsigned(NUM_INST_NUM_BITS-1 downto 0);
   signal count_line_en, count_line_reset, count_line_done    : std_logic;
 begin
   
@@ -164,20 +164,22 @@ begin
             master_start <= '1';
             
             if master_done = '1' then
+                count_line_en <= '1';
                 if count_line_p = to_unsigned(NUM_INST-1, count_line_p'length) and count_row_p = to_unsigned(CHECKERBOARD_SIZE-1, count_row_p'length) then
                     nrState <= IDLE;
                 elsif count_line_p = to_unsigned(NUM_INST-1, count_line_p'length) then
                     count_row_en <= '1';
-                    count_line_reset <= '1';
+                    --count_line_reset <= '1';
                     nrState <= READ_BRAM_WAIT;
-                else
-                    nrState <= WRITE_DRAM_INCREMENT;
                 end if;
+--                else
+--                    nrState <= WRITE_DRAM_INCREMENT;
+--                end if;
             end if;
             
-        when WRITE_DRAM_INCREMENT =>
-            count_line_en <= '1';
-            nrState <= WRITE_DRAM;
+--        when WRITE_DRAM_INCREMENT =>
+--            count_line_en <= '1';
+--            nrState <= WRITE_DRAM;
             
         when OTHERS =>
             NULL;
@@ -193,9 +195,9 @@ begin
                     count_row_p;
                     
   --line counter
-  count_line_done <= '1' when count_line_p = to_unsigned(NUM_INST, count_line_p'length) else
-                     '0';
-  count_line_n <=   to_unsigned(0, count_line_n'length) when (count_line_done='1' or count_line_reset='1') else
+--  count_line_done <= '1' when count_line_p = to_unsigned(NUM_INST, count_line_p'length) else
+--                     '0';
+  count_line_n <=   --to_unsigned(0, count_line_n'length) when (count_line_done='1' or count_line_reset='1') else
                     count_line_p + to_unsigned(1, count_line_p'length) when count_line_en = '1' else
                     count_line_p;         
                     

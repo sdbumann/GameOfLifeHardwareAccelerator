@@ -325,6 +325,25 @@ begin
     save_dram_block_start <= '1';
     wait for CLK_per;
     save_dram_block_start <= '0';
+    wait for CLK_per;
+    wait for CLK_per;
+    wait for CLK_per;
+    wait for CLK_per;
+    master_done <= '0';
+    wait for CLK_per;
+    wait for CLK_per;
+    wait for CLK_per;
+    wait for CLK_per;
+    wait for CLK_per;
+    wait for CLK_per;
+    wait for CLK_per;
+    wait for CLK_per;
+    wait for CLK_per;
+    wait for CLK_per;
+    wait for CLK_per;
+    wait for CLK_per;
+    master_done <= '1';
+    
     
     wait until save_dram_block_done='1';
     wait until rising_edge(CLKxCI);
