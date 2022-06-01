@@ -36,7 +36,13 @@ entity game_of_life_block is
     start : in std_logic;
     done : out std_logic;
     init_row_0, init_row_1, init_row_2 : in std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
-    work_bram_is : in std_logic
+    work_bram_is : in std_logic;
+    
+    -- ILA debug signals
+    count_row_GoL : out unsigned(CHECKERBOARD_SIZE_NUM_BITS downto 0);
+    row_solution_GoL : out std_logic_vector(CHECKERBOARD_SIZE-1 downto 0)
+    
+    
   );
 end game_of_life_block;
 
@@ -216,7 +222,10 @@ begin
   count_row_n <=    to_unsigned(0, count_row_n'length) when (count_row_done='1' or count_row_reset='1') else
                     count_row_p + to_unsigned(1, count_row_p'length) when count_row_en = '1' else
                     count_row_p;
+                    
                 
+  count_row_GoL <= count_row_p;
+  row_solution_GoL <= row_solution_p;                
 end rtl;
 
 

@@ -68,6 +68,7 @@ entity fsm_top is
         
         count_line_init : out unsigned(NUM_INST_NUM_BITS-1 downto 0);
         count_row_init : out unsigned(CHECKERBOARD_SIZE_NUM_BITS downto 0);
+        init_row_0_init, init_row_1_init, init_row_2_init : out std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
         
         bram_ena0 : out std_logic;
         bram_wea0 : out std_logic_vector(0 downto 0);
@@ -83,7 +84,12 @@ entity fsm_top is
         bram_dia1 : out std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
         bram_enb1 : out std_logic;
         bram_addrb1 : out std_logic_vector(9 downto 0);
-        bram_dob1 : out std_logic_vector(CHECKERBOARD_SIZE-1 downto 0)
+        bram_dob1 : out std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
+        
+        count_row_GoL : out unsigned(CHECKERBOARD_SIZE_NUM_BITS downto 0);
+        row_solution_GoL : out std_logic_vector(CHECKERBOARD_SIZE-1 downto 0)
+        
+        
     );
 end fsm_top;
 
@@ -299,7 +305,9 @@ init_block_inst : entity work.init_block(rtl)
     init_row_0 => init_row_0, 
     init_row_1 => init_row_1,
     init_row_2 => init_row_2,
-    work_bram_is => work_bram_is
+    work_bram_is => work_bram_is,
+    count_row_GoL => count_row_GoL,
+    row_solution_GoL => row_solution_GoL
     );
 
     VideoDriverInst : entity work.VideoDriver(rtl)
@@ -570,4 +578,7 @@ init_block_inst : entity work.init_block(rtl)
     bram_enb1 <= enb1;
     bram_addrb1 <= addrb1;
     bram_dob1   <= dob1;
+    init_row_0_init <= init_row_0;
+    init_row_1_init <= init_row_1;
+    init_row_2_init <= init_row_2;
 end rtl;

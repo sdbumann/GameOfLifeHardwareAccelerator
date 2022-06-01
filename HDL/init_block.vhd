@@ -35,7 +35,10 @@ entity init_block is
     GameOfLifeAddress : in std_logic_vector(C_M00_AXI_ADDR_WIDTH-1 downto 0);
     start : in std_logic;
     done : out std_logic;
-    init_row_0_out, init_row_1_out, init_row_2_out : out std_logic_vector(CHECKERBOARD_SIZE-1 downto 0)
+    init_row_0_out, init_row_1_out, init_row_2_out : out std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
+    
+    count_line_init : out unsigned(NUM_INST_NUM_BITS-1 downto 0);
+    count_row_init : out unsigned(CHECKERBOARD_SIZE_NUM_BITS downto 0)
   );
 end init_block;
 
@@ -114,11 +117,12 @@ begin
             count_line_reset<='1';
             count_row_reset<='1';
             done <= '1';
-            count_line_reset <= '1';
-            count_row_reset <= '1';
-            
+             
             if start='1' then
                 nrState <= WAIT_DRAM; 
+                master_address <= std_logic_vector(unsigned(GameOfLifeAddress) + WORD_LENGTH/8*count_line_p + count_row_p * CHECKERBOARD_SIZE/8);
+                master_readWrite <= '0'; --we want to read
+                master_start<='1';
             end if;
 
 
@@ -189,6 +193,10 @@ begin
   count_line_n <=   to_unsigned(0, count_line_n'length) when count_line_reset='1' else
                     count_line_p + to_unsigned(1, count_line_p'length) when count_line_en = '1' else
                     count_line_p;
+                    
+  --ILA debugging
+  count_line_init <= count_line_p;
+  count_row_init <= count_row_p;            
 end rtl;
 
 

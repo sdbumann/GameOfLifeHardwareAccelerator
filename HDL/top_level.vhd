@@ -91,6 +91,7 @@ entity top_level is
     
     count_line_init : out unsigned(NUM_INST_NUM_BITS-1 downto 0);
     count_row_init : out unsigned(CHECKERBOARD_SIZE_NUM_BITS downto 0);
+    init_row_0_init, init_row_1_init, init_row_2_init : out std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
             
     bram_ena0 : out std_logic;
     bram_wea0 : out std_logic_vector(0 downto 0);
@@ -106,7 +107,10 @@ entity top_level is
     bram_dia1 : out std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
     bram_enb1 : out std_logic;
     bram_addrb1 : out std_logic_vector(9 downto 0);
-    bram_dob1 : out std_logic_vector(CHECKERBOARD_SIZE-1 downto 0)
+    bram_dob1 : out std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
+    
+    count_row_GoL : out unsigned(CHECKERBOARD_SIZE_NUM_BITS downto 0);
+    row_solution_GoL : out std_logic_vector(CHECKERBOARD_SIZE-1 downto 0)
   );
 end top_level;
 
@@ -203,6 +207,10 @@ begin
             lineCounter_video_driver => lineCounter_video_driver,            
             count_line_init => count_line_init,
             count_row_init => count_row_init,
+            init_row_0_init => init_row_0_init,
+            init_row_1_init => init_row_1_init,
+            init_row_2_init => init_row_2_init,
+            
             bram_ena0 => bram_ena0,
             bram_wea0 => bram_wea0,
             bram_addra0 => bram_addra0,
@@ -216,7 +224,10 @@ begin
             bram_dia1 => bram_dia1,
             bram_enb1 => bram_enb1,
             bram_addrb1 => bram_addrb1,
-            bram_dob1 => bram_dob1
+            bram_dob1 => bram_dob1,
+            
+            count_row_GoL => count_row_GoL,
+            row_solution_GoL => row_solution_GoL
       );
     
     AXI_master_done <= masterDone;
