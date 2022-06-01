@@ -80,9 +80,33 @@ entity top_level is
     
 --ILA debugging signals
     fsm_top_state : out std_logic_vector(2 downto 0);
+    
     AXI_master_done : out std_logic;
+    
     count_line_save_dram : out unsigned(NUM_INST_NUM_BITS-1 downto 0);
-    count_row_save_dram : out unsigned(CHECKERBOARD_SIZE_NUM_BITS downto 0)
+    count_row_save_dram : out unsigned(CHECKERBOARD_SIZE_NUM_BITS downto 0);
+    
+    colCounter_video_driver : out unsigned(GoL_ADDR_LEN-1 downto 0);
+    lineCounter_video_driver : out unsigned(GoL_ADDR_LEN-1 downto 0);
+    
+    count_line_init : out unsigned(NUM_INST_NUM_BITS-1 downto 0);
+    count_row_init : out unsigned(CHECKERBOARD_SIZE_NUM_BITS downto 0);
+            
+    bram_ena0 : out std_logic;
+    bram_wea0 : out std_logic_vector(0 downto 0);
+    bram_addra0 : out std_logic_vector(9 downto 0);
+    bram_dia0 : out std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
+    bram_enb0 : out std_logic;
+    bram_addrb0 : out std_logic_vector(9 downto 0);
+    bram_dob0 : out std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
+
+    bram_ena1 : out std_logic;
+    bram_wea1 : out std_logic_vector(0 downto 0);
+    bram_addra1 : out std_logic_vector(9 downto 0);
+    bram_dia1 : out std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
+    bram_enb1 : out std_logic;
+    bram_addrb1 : out std_logic_vector(9 downto 0);
+    bram_dob1 : out std_logic_vector(CHECKERBOARD_SIZE-1 downto 0)
   );
 end top_level;
 
@@ -171,9 +195,28 @@ begin
             windowTop => slaveWindowTop,
             windowLeft  => slaveWindowLeft,
             frameBufferAddr =>  slaveFrameBufferAddress,
+            -- ILA signals
             fsm_top_state => fsm_top_state,
             count_line_save_dram => count_line_save_dram,
-            count_row_save_dram => count_row_save_dram
+            count_row_save_dram => count_row_save_dram,
+            colCounter_video_driver => colCounter_video_driver,
+            lineCounter_video_driver => lineCounter_video_driver,            
+            count_line_init => count_line_init,
+            count_row_init => count_row_init,
+            bram_ena0 => bram_ena0,
+            bram_wea0 => bram_wea0,
+            bram_addra0 => bram_addra0,
+            bram_dia0 => bram_dia0,
+            bram_enb0 => bram_enb0,
+            bram_addrb0 => bram_addrb0,
+            bram_dob0 => bram_dob0,
+            bram_ena1 => bram_ena1,
+            bram_wea1 => bram_wea1,
+            bram_addra1 => bram_addra1,
+            bram_dia1 => bram_dia1,
+            bram_enb1 => bram_enb1,
+            bram_addrb1 => bram_addrb1,
+            bram_dob1 => bram_dob1
       );
     
     AXI_master_done <= masterDone;
