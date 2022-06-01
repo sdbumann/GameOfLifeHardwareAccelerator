@@ -64,7 +64,11 @@ entity VideoDriver is
         addrb1 : out std_logic_vector(9 downto 0);
         dob1 : in std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
 
-        work_bram_is : in std_logic
+        work_bram_is : in std_logic;
+        
+        --ILA signals
+        colCounter_video_driver : out unsigned(GoL_ADDR_LEN-1 downto 0);
+        lineCounter_video_driver : out unsigned(GoL_ADDR_LEN-1 downto 0)
     );
 end VideoDriver;
 
@@ -74,7 +78,7 @@ architecture rtl of VideoDriver is
     
     signal lineCounterP, lineCounterN, colCounterP, colCounterN : unsigned(GoL_ADDR_LEN-1 downto 0);
     
-    type STATE is (IDLE, WAIT_BRAM_READ, LOAD_LINE, SAVE_LINE, WRITE_PIXEL);
+    type STATE is (IDLE, WAIT_BRAM_READ, LOAD_LINE, SAVE_LINE, WRITE_PIXEL_WAIT, WRITE_PIXEL);
     signal stateP, stateN : STATE;
     signal GoLLineP, GoLLineN : std_logic_vector(GoL_DATA_LEN-1 downto 0);
     signal GoLAddrP, GoLAddrN : unsigned (GoL_ADDR_LEN-1 downto 0);
@@ -152,6 +156,8 @@ begin
         bramReadEnable <= '0';
         case stateP is
             when IDLE => 
+                lineCounterN <= (others => '0');
+                colCounterN <= (others => '0');
                 frameDone <= '1';
                 if GoLReady = '1' then
                     GolAddrN <= windowTopRegulated;
@@ -166,9 +172,17 @@ begin
             when SAVE_LINE =>
                 GoLLineN <= GoLData;
                 bramReadEnable <= '1';
-                stateN <= WRITE_PIXEL;
+                stateN <= WRITE_PIXEL_WAIT;
+            when WRITE_PIXEL_WAIT =>
+                if GoLLineP(to_integer(windowLeftRegulated + colCounterP)) = '0' then -- mirrors the board
+                    pixelData <= x"00"&x"FF"&x"FF"&x"FF";
+                else
+                    pixelData <= x"00"&x"FF"&x"00"&x"FF";
+                end if;
+                writeStart <= '1';
+                stateN <= WRITE_PIXEL;            
             when WRITE_PIXEL =>
-                if GoLLineP(to_integer(windowTopRegulated + colCounterP)) = '1' then -- mirrors the board
+                if GoLLineP(to_integer(windowLeftRegulated + colCounterP)) = '0' then -- mirrors the board
                     pixelData <= x"00"&x"FF"&x"FF"&x"FF";
                 else
                     pixelData <= x"00"&x"FF"&x"00"&x"FF";
@@ -191,4 +205,8 @@ begin
                 stateN <= IDLE;
         end case;
     end process;
+    
+    --ILA
+    colCounter_video_driver <= colCounterP;
+    lineCounter_video_driver <= lineCounterP;
 end rtl;
