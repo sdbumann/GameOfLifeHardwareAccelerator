@@ -47,7 +47,7 @@ library work;
 use work.constants.all;
 
 architecture rtl of init_block is
-  type TState is (IDLE, WAIT_DRAM, READ_DRAM, WRITE_BRAM, DONE_STATE);
+  type TState is (IDLE, WAIT_DRAM, READ_DRAM, WRITE_BRAM);
   signal rState, nrState                      : TState;
   signal init_row_0_p, init_row_0_n, init_row_1_p, init_row_1_n, init_row_2_p, init_row_2_n : std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
   signal row_temp_p, row_temp_n : std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
@@ -113,9 +113,12 @@ begin
         when IDLE =>
             count_line_reset<='1';
             count_row_reset<='1';
+            done <= '1';
+            count_line_reset <= '1';
+            count_row_reset <= '1';
             
             if start='1' then
-                nrState <= READ_DRAM; 
+                nrState <= WAIT_DRAM; 
             end if;
 
 
@@ -124,13 +127,13 @@ begin
             master_readWrite <= '0'; --we want to read
             master_start<='1';
             
-            if count_row_done = '1' then 
-                count_row_reset <= '1';
-                nrState <= DONE_STATE;
-            elsif count_line_done = '1' then
-                count_line_reset <= '1';
-                nrState <= WRITE_BRAM;
-            elsif master_done = '1' then
+--            if count_row_done = '1' then 
+--                count_row_reset <= '1';
+--                nrState <= DONE_STATE;
+--            elsif count_line_done = '1' then
+--                count_line_en <= '1';
+--                nrState <= WRITE_BRAM;
+            if master_done = '1' then
                 nrState <= READ_DRAM;
             end if;
         
@@ -138,7 +141,7 @@ begin
             master_address <= std_logic_vector(unsigned(GameOfLifeAddress) + WORD_LENGTH/8*count_line_p + count_row_p * CHECKERBOARD_SIZE/8);
             row_temp_n(CHECKERBOARD_SIZE-1-WORD_LENGTH*to_integer(count_line_p) downto CHECKERBOARD_SIZE-1-WORD_LENGTH*to_integer(count_line_p)-WORD_LENGTH+1) <= master_dataRead;
             if count_line_done = '1' then
-                count_line_reset <= '1';
+                count_line_en <= '1';
                 nrState <= WRITE_BRAM;
             else
                 count_line_en <= '1';
@@ -160,17 +163,12 @@ begin
             
             if count_row_done = '1' then 
                 count_row_reset <= '1';
-                nrState <= DONE_STATE;
+                nrState <= IDLE;
             else 
                 count_row_en <= '1';
                 nrState <= WAIT_DRAM;
             end if;
             
-        when DONE_STATE =>
-            done <= '1';
-            count_line_reset <= '1';
-            count_row_reset <= '1';
-            nrState <= IDLE;
             
         when OTHERS =>
             NULL;
@@ -179,16 +177,16 @@ begin
   
    
   --row counter
-  count_row_done <= '1' when count_row_p = to_unsigned(CHECKERBOARD_SIZE, count_row_p'length) else
+  count_row_done <= '1' when count_row_p = to_unsigned(CHECKERBOARD_SIZE-1, count_row_p'length) else
                     '0';
-  count_row_n <=    to_unsigned(0, count_row_n'length) when (count_row_done='1' or count_row_reset='1') else
+  count_row_n <=    to_unsigned(0, count_row_n'length) when count_row_reset='1' else
                     count_row_p + to_unsigned(1, count_row_p'length) when count_row_en = '1' else
                     count_row_p;
                 
   --line counter
   count_line_done <= '1' when count_line_p = to_unsigned(NUM_INST-1, count_line_p'length) else
                      '0';
-  count_line_n <=   to_unsigned(0, count_line_n'length) when (count_line_done='1' or count_line_reset='1') else
+  count_line_n <=   to_unsigned(0, count_line_n'length) when count_line_reset='1' else
                     count_line_p + to_unsigned(1, count_line_p'length) when count_line_en = '1' else
                     count_line_p;
 end rtl;
