@@ -128,8 +128,8 @@ architecture tb of game_of_life_block_tb is
             wait for CLK_PER;
             wait for CLK_PER;
             master_done <= '1';
-            wait for CLK_PER;
-            master_done <= '0';
+--            wait for CLK_PER;
+--            master_done <= '0';
             
         end WriteValue;
 --=============================================================================
@@ -300,21 +300,11 @@ begin
     wait for CLK_PER;
     GameOfLifeAddress <= std_logic_vector(to_unsigned(0,GameOfLifeAddress'length));
     init_start <= '1';
+    wait for CLK_PER;
+    init_start <= '0';
     for i in 0 to CHECKERBOARD_SIZE*CHECKERBOARD_SIZE/32-1 loop
         WriteValue(master_address, master_dataRead, master_start, master_done);
     end loop;
-    
---    master_start => master_start,
---        master_done => master_done,
---        master_readWrite => master_readWrite,
---        master_address => master_address,
---        master_dataRead => master_dataRead,
-    
-    wait for CLK_PER;
-    init_start <= '0';
-    
-    
-    
     wait until init_done='1';
     wait until rising_edge(CLKxCI);
 
