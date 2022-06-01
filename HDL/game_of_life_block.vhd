@@ -35,7 +35,7 @@ entity game_of_life_block is
     -- other signals 
     start : in std_logic;
     done : out std_logic;
-    init_row_0, init_row_1, init_row_2 : in std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
+--    init_row_0, init_row_1, init_row_2 : in std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
     work_bram_is : in std_logic;
     
     -- ILA debug signals
@@ -54,7 +54,7 @@ library work;
 use work.constants.all;
 
 architecture rtl of game_of_life_block is
-  type TState is (IDLE, START_GOL_FULL_ROW_STATE, SAVE_ROWS, EXCHANGE_ROWS, DONE_STATE);
+  type TState is (IDLE, START_GOL_FULL_ROW_STATE, SAVE_ROWS, EXCHANGE_ROWS, DONE_STATE, READ_INITIAL_ROW_ONE_WAIT, READ_INITIAL_ROW_ONE, READ_INITIAL_ROW_TWO_WAIT, READ_INITIAL_ROW_TWO);
   signal rState, nrState : TState;
 --  signal init_row_0_p, init_row_0_n, init_row_1_p, init_row_1_n, init_row_2_p, init_row_2_n : std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
   signal row_0_p, row_0_n, row_1_p, row_1_n, row_2_p, row_2_n : std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
@@ -141,11 +141,50 @@ begin
     case rState is
         when IDLE =>   
             if start='1' then
-                row_0_n <= init_row_0;
-                row_1_n <= init_row_1;
-                row_2_n <= init_row_2;
-                nrState <= START_GOL_FULL_ROW_STATE; 
+                row_0_n <= (others => '0');
+                if work_bram_is = '0' then
+                    addrb0 <= std_logic_vector(to_unsigned(0, addrb0'length));
+                    enb0 <= '1';
+                else
+                    addrb1 <= std_logic_vector(to_unsigned(0, addrb0'length));
+                    enb1 <= '1';
+                end if;
+                nrState <= READ_INITIAL_ROW_ONE;
             end if;
+            
+        when READ_INITIAL_ROW_ONE =>
+            if work_bram_is = '0' then
+                addrb0 <= std_logic_vector(to_unsigned(0, addrb0'length));
+                enb0 <= '1';
+                row_1_n <= dob0;
+            else
+                addrb1 <= std_logic_vector(to_unsigned(0, addrb0'length));
+                enb1 <= '1';
+                row_1_n <= dob1;
+            end if;
+            nrState <= READ_INITIAL_ROW_TWO_WAIT;
+            
+        when READ_INITIAL_ROW_TWO_WAIT =>
+            if work_bram_is = '0' then
+                addrb0 <= std_logic_vector(to_unsigned(1, addrb0'length));
+                enb0 <= '1';
+            else
+                addrb1 <= std_logic_vector(to_unsigned(1, addrb0'length));
+                enb1 <= '1';
+            end if;
+            nrState <= READ_INITIAL_ROW_TWO;
+        
+        when READ_INITIAL_ROW_TWO =>
+            if work_bram_is = '0' then
+                addrb0 <= std_logic_vector(to_unsigned(1, addrb0'length));
+                enb0 <= '1';
+                row_2_n <= dob0;
+            else
+                addrb1 <= std_logic_vector(to_unsigned(1, addrb0'length));
+                enb1 <= '1';
+                row_2_n <= dob1;
+            end if;
+            nrState <= START_GOL_FULL_ROW_STATE;
 
         when START_GOL_FULL_ROW_STATE =>
             start_GOL_full_row <= '1';

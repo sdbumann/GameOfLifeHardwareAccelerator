@@ -31,7 +31,7 @@ end init_block_tb;
 --=============================================================================
 architecture tb of init_block_tb is
         --TB constants
-        constant CLK_PER : time    := 8 ns;   -- 125 MHz clk freq
+        constant CLK_PER : time    := 18.18 ns;   -- 125 MHz clk freq
         constant CLK_LIM : integer := 2**10;  -- Stops simulation from running forever if circuit is not correct
         --constant period: time := 20 ns;
     
@@ -68,7 +68,26 @@ architecture tb of init_block_tb is
         signal done : std_logic;
         signal init_row_0_out, init_row_1_out, init_row_2_out : std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
      
-        
+        procedure WriteValue(
+          signal master_address : in std_logic_vector(32-1 downto 0);
+          signal master_data : out std_logic_vector(32-1 downto 0);
+          signal master_start : std_logic;
+          signal master_done : out std_logic
+          ) is
+        begin
+            wait until master_start = '1';
+            master_done <= '0';
+            master_data <= master_address;
+            wait for CLK_PER;
+            wait for CLK_PER;
+            wait for CLK_PER;
+            wait for CLK_PER;
+            wait for CLK_PER;
+            master_done <= '1';
+--            wait for CLK_PER;
+--            master_done <= '0';
+            
+        end WriteValue;
 
 --=============================================================================
 -- ARCHITECTURE BEGIN
@@ -148,20 +167,24 @@ begin
   begin
     
     wait until RSTxRBI = '1';
+    master_done<='1';
+    wait for CLK_PER;
+    wait for CLK_PER;
+    wait for CLK_PER;
+    wait for CLK_PER;
 
+
+    -- fill working memory
     wait for CLK_PER;
+    GameOfLifeAddress <= std_logic_vector(to_unsigned(0,GameOfLifeAddress'length));
     start <= '1';
-    master_done <= '1';
-    GameOfLifeAddress <= std_logic_vector(to_unsigned(1,GameOfLifeAddress'length));
-    wait for CLK_PER;
-    start <= '0';
-    
-    master_dataRead <= std_logic_vector(to_unsigned(1, master_dataRead'length));
-    
+--    wait for CLK_PER;
+--    start <= '0';
+    for i in 0 to CHECKERBOARD_SIZE*CHECKERBOARD_SIZE/32-1 loop
+        WriteValue(master_address, master_dataRead, master_start, master_done);
+    end loop;
     wait until done='1';
     wait until rising_edge(CLKxCI);
---    assert (row_solution = row_solution_tb)
---    report "row_solution should be = row_solution_tb" severity error;
     
 
     stop(0);
