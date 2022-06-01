@@ -47,7 +47,8 @@ entity master is
 
     -- Additional control signals for this module.
     start : in std_logic;
-    done, error : out std_logic;
+    done : out std_logic;
+    error : out std_logic;
     readWrite : in std_logic;
     address : in std_logic_vector(C_M00_AXI_ADDR_WIDTH-1 downto 0);
     dataWrite : in std_logic_vector(C_M00_AXI_DATA_WIDTH-1 downto 0);

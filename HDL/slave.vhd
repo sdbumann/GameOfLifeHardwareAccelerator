@@ -46,7 +46,7 @@ entity slave is
 
     -- User ports.
     start : out std_logic;
-    stop : out std_logic;
+    stopGoL : out std_logic;
     done : in std_logic;
     game_of_life_address : out std_logic_vector(C_S00_AXI_DATA_WIDTH-1 downto 0);
     frame_buffer_address : out std_logic_vector(C_S00_AXI_DATA_WIDTH-1 downto 0);
@@ -102,6 +102,7 @@ begin
     s00_axi_wready <= '0';  -- We limit that we accept the data only if the address is also on the bus, both at the same time.
     s00_axi_arready <= '0';
     s00_axi_awready <= '0';
+
 	   
     case state is
       when IDLE =>
@@ -134,11 +135,7 @@ begin
           --nregisters(to_integer(unsigned(awrite))) <= s00_axi_wdata;
           -- [TODO2] change the following IF statement
           regIndex := to_integer(unsigned(awrite));
-          if (regIndex = 0) then -- because start is only one bit
-            start <= s00_axi_wdata(0);
-          elsif (regIndex = 1) then -- because start is only one bit
-            stop <= s00_axi_wdata(0);
-          elsif (regIndex < C_NUM_REGISTERS) then 
+          if (regIndex < C_NUM_REGISTERS) then 
             nregisters(regIndex) <= s00_axi_wdata;
           end if;
         end if;
@@ -176,6 +173,8 @@ begin
 
   -- Logic.
   -- [TODO3] correct registers to outputsignals that are not only 1 bit
+  start <= registers(0)(0);
+  stopGoL <= registers(1)(0);
   game_of_life_address <= registers(3);
   frame_buffer_address <= registers(4);
   window_top <= registers(5);

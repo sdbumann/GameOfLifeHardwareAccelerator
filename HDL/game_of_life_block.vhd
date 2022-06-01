@@ -130,7 +130,8 @@ begin
     
     done <= '0';
 
-    
+    start_GOL_full_row <= '0';
+        
     case rState is
         when IDLE =>   
             if start='1' then
