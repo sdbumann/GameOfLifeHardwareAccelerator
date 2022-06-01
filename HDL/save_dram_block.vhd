@@ -65,7 +65,7 @@ library work;
 use work.constants.all;
 
 architecture rtl of save_dram_block is
-  type TState is (IDLE, READ_BRAM_WAIT, READ_BRAM, WRITE_DRAM);
+  type TState is (IDLE, READ_BRAM_WAIT, READ_BRAM, WRITE_DRAM, WRITE_DRAM_WAIT);
   signal rState, nrState : TState;
   signal row_p, row_n : std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
   signal count_row_p, count_row_n : unsigned(CHECKERBOARD_SIZE_NUM_BITS downto 0);
@@ -156,6 +156,12 @@ begin
                 row_n <= dob0;
             end if;
         
+            nrState <= WRITE_DRAM_WAIT;
+        
+        when WRITE_DRAM_WAIT => -- master_done is always one  
+            master_readWrite <= '1'; -- 1 for write
+            master_dataWrite <= row_p(CHECKERBOARD_SIZE-1-WORD_LENGTH*to_integer(count_line_p) downto CHECKERBOARD_SIZE-1-WORD_LENGTH*to_integer(count_line_p)-WORD_LENGTH+1);
+            master_start <= '1';  
             nrState <= WRITE_DRAM;
             
         when WRITE_DRAM => 
