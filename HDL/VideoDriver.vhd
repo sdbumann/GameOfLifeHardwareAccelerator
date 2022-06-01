@@ -174,7 +174,7 @@ begin
                 bramReadEnable <= '1';
                 stateN <= WRITE_PIXEL_WAIT;
             when WRITE_PIXEL_WAIT =>
-                if GoLLineP(to_integer(windowLeftRegulated + colCounterP)) = '0' then -- mirrors the board
+                if GoLLineP(to_integer(GoL_DATA_LEN-1 - windowLeftRegulated - colCounterP)) = '0' then 
                     pixelData <= x"00"&x"FF"&x"FF"&x"FF";
                 else
                     pixelData <= x"00"&x"FF"&x"00"&x"FF";
@@ -182,7 +182,7 @@ begin
                 writeStart <= '1';
                 stateN <= WRITE_PIXEL;            
             when WRITE_PIXEL =>
-                if GoLLineP(to_integer(windowLeftRegulated + colCounterP)) = '0' then -- mirrors the board
+                if GoLLineP(to_integer(GoL_DATA_LEN-1 - windowLeftRegulated - colCounterP)) = '0' then 
                     pixelData <= x"00"&x"FF"&x"FF"&x"FF";
                 else
                     pixelData <= x"00"&x"FF"&x"00"&x"FF";
