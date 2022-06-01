@@ -68,7 +68,7 @@ entity fsm_top is
         
         count_line_init : out unsigned(NUM_INST_NUM_BITS-1 downto 0);
         count_row_init : out unsigned(CHECKERBOARD_SIZE_NUM_BITS downto 0);
-        init_row_0_init, init_row_1_init, init_row_2_init : out std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
+--        init_row_0_init, init_row_1_init, init_row_2_init : out std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
         
         bram_ena0 : out std_logic;
         bram_wea0 : out std_logic_vector(0 downto 0);
@@ -120,7 +120,7 @@ architecture rtl of fsm_top is
     signal dob1 : std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
     
 -- init_block & game_of_life_block signals
-    signal init_row_0, init_row_1, init_row_2 : std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
+--    signal init_row_0, init_row_1, init_row_2 : std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
     
 -- game_of_life_block, video driver & save_dram_block signals
     signal work_bram_is : std_logic;
@@ -245,9 +245,9 @@ init_block_inst : entity work.init_block(rtl)
         GameOfLifeAddress => GameOfLifeAddress,
         start => initBlockStart,
         done => initBlockDone,
-        init_row_0_out => init_row_0,
-        init_row_1_out => init_row_1,
-        init_row_2_out => init_row_2,
+--        init_row_0_out => init_row_0,
+--        init_row_1_out => init_row_1,
+--        init_row_2_out => init_row_2,
         
         count_line_init => count_line_init,
         count_row_init => count_row_init
@@ -302,9 +302,9 @@ init_block_inst : entity work.init_block(rtl)
     -- other signals 
     start  => GoLBlockStart,
     done  => GoLBlockDone,
-    init_row_0 => init_row_0, 
-    init_row_1 => init_row_1,
-    init_row_2 => init_row_2,
+--    init_row_0 => init_row_0, 
+--    init_row_1 => init_row_1,
+--    init_row_2 => init_row_2,
     work_bram_is => work_bram_is,
     count_row_GoL => count_row_GoL,
     row_solution_GoL => row_solution_GoL
@@ -578,7 +578,7 @@ init_block_inst : entity work.init_block(rtl)
     bram_enb1 <= enb1;
     bram_addrb1 <= addrb1;
     bram_dob1   <= dob1;
-    init_row_0_init <= init_row_0;
-    init_row_1_init <= init_row_1;
-    init_row_2_init <= init_row_2;
+--    init_row_0_init <= init_row_0;
+--    init_row_1_init <= init_row_1;
+--    init_row_2_init <= init_row_2;
 end rtl;

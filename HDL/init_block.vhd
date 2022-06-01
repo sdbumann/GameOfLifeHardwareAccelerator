@@ -50,9 +50,9 @@ library work;
 use work.constants.all;
 
 architecture rtl of init_block is
-  type TState is (IDLE, WAIT_DRAM, READ_DRAM, WRITE_BRAM);
+  type TState is (IDLE, WAIT_DRAM_AFTER_IDLE, WAIT_DRAM, READ_DRAM, WRITE_BRAM);
   signal rState, nrState                      : TState;
-  signal init_row_0_p, init_row_0_n, init_row_1_p, init_row_1_n, init_row_2_p, init_row_2_n : std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
+--  signal init_row_0_p, init_row_0_n, init_row_1_p, init_row_1_n, init_row_2_p, init_row_2_n : std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
   signal row_temp_p, row_temp_n : std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
   signal count_line_p, count_line_n : unsigned(NUM_INST_NUM_BITS-1 downto 0);
   signal count_line_en, count_line_reset, count_line_done    : std_logic;
@@ -60,9 +60,9 @@ architecture rtl of init_block is
   signal count_row_en, count_row_reset, count_row_done : std_logic;
   
 begin
-  init_row_0_out <= init_row_0_p;
-  init_row_1_out <= init_row_1_p;
-  init_row_2_out <= init_row_2_p;
+--  init_row_0_out <= init_row_0_p;
+--  init_row_1_out <= init_row_1_p;
+--  init_row_2_out <= init_row_2_p;
   process (CLK, resetn)
   begin
     if rising_edge(CLK) then 
@@ -70,17 +70,17 @@ begin
         rState <= IDLE;
         count_row_p <= (others => '0');
         count_line_p <= (others => '0');
-        init_row_0_p <= (others => '0');
-        init_row_1_p <= (others => '0');
-        init_row_2_p <= (others => '0');
+--        init_row_0_p <= (others => '0');
+--        init_row_1_p <= (others => '0');
+--        init_row_2_p <= (others => '0');
         row_temp_p <= (others => '0');
       else
         rState <= nrState;
         count_row_p <= count_row_n;
         count_line_p <= count_line_n;
-        init_row_0_p <= init_row_0_n;
-        init_row_1_p <= init_row_1_n;
-        init_row_2_p <= init_row_2_n;
+--        init_row_0_p <= init_row_0_n;
+--        init_row_1_p <= init_row_1_n;
+--        init_row_2_p <= init_row_2_n;
         row_temp_p <= row_temp_n;
       end if;
     end if;
@@ -90,9 +90,9 @@ begin
   process (all)
   begin
     nrState                 <= rState;
-    init_row_0_n            <= init_row_0_p;
-    init_row_1_n            <= init_row_1_p;
-    init_row_2_n            <= init_row_2_p;
+--    init_row_0_n            <= init_row_0_p;
+--    init_row_1_n            <= init_row_1_p;
+--    init_row_2_n            <= init_row_2_p;
     row_temp_n              <= row_temp_p;
     
     count_line_reset<='0';
@@ -119,11 +119,26 @@ begin
             done <= '1';
              
             if start='1' then
-                nrState <= WAIT_DRAM; 
+                nrState <= WAIT_DRAM_AFTER_IDLE; 
                 master_address <= std_logic_vector(unsigned(GameOfLifeAddress) + WORD_LENGTH/8*count_line_p + count_row_p * CHECKERBOARD_SIZE/8);
                 master_readWrite <= '0'; --we want to read
                 master_start<='1';
             end if;
+
+        when WAIT_DRAM_AFTER_IDLE =>
+            master_address <= std_logic_vector(unsigned(GameOfLifeAddress) + WORD_LENGTH/8*count_line_p + count_row_p * CHECKERBOARD_SIZE/8);
+            master_readWrite <= '0'; --we want to read
+            master_start <= '1';
+            nrState <= WAIT_DRAM;
+            
+--            if count_row_done = '1' then 
+--                count_row_reset <= '1';
+--                nrState <= DONE_STATE;
+--            elsif count_line_done = '1' then
+--                count_line_en <= '1';
+--                nrState <= WRITE_BRAM;
+
+                
 
 
         when WAIT_DRAM =>
@@ -158,12 +173,12 @@ begin
             wea0 <= '1';
             ena0 <= '1';
             
-            init_row_0_n <= (others => '0');
-            if count_row_p = to_unsigned(0, count_row_p'length) then 
-                init_row_1_n <= row_temp_p;
-            elsif count_row_p = to_unsigned(1, count_row_p'length) then
-                init_row_2_n <= row_temp_p;
-            end if;
+--            init_row_0_n <= (others => '0');
+--            if count_row_p = to_unsigned(0, count_row_p'length) then 
+--                init_row_1_n <= row_temp_p;
+--            elsif count_row_p = to_unsigned(1, count_row_p'length) then
+--                init_row_2_n <= row_temp_p;
+--            end if;
             
             if count_row_done = '1' then 
                 count_row_reset <= '1';
