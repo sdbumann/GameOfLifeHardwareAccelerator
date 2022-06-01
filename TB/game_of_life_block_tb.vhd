@@ -300,8 +300,8 @@ begin
     wait for CLK_PER;
     GameOfLifeAddress <= std_logic_vector(to_unsigned(0,GameOfLifeAddress'length));
     init_start <= '1';
-    wait for CLK_PER;
-    init_start <= '0';
+--    wait for CLK_PER;
+--    init_start <= '0';
     for i in 0 to CHECKERBOARD_SIZE*CHECKERBOARD_SIZE/32-1 loop
         WriteValue(master_address, master_dataRead, master_start, master_done);
     end loop;

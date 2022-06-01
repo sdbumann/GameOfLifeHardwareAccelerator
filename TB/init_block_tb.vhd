@@ -31,7 +31,7 @@ end init_block_tb;
 --=============================================================================
 architecture tb of init_block_tb is
         --TB constants
-        constant CLK_PER : time    := 8 ns;   -- 125 MHz clk freq
+        constant CLK_PER : time    := 18.18 ns;   -- 125 MHz clk freq
         constant CLK_LIM : integer := 2**10;  -- Stops simulation from running forever if circuit is not correct
         --constant period: time := 20 ns;
     
@@ -178,8 +178,8 @@ begin
     wait for CLK_PER;
     GameOfLifeAddress <= std_logic_vector(to_unsigned(0,GameOfLifeAddress'length));
     start <= '1';
-    wait for CLK_PER;
-    start <= '0';
+--    wait for CLK_PER;
+--    start <= '0';
     for i in 0 to CHECKERBOARD_SIZE*CHECKERBOARD_SIZE/32-1 loop
         WriteValue(master_address, master_dataRead, master_start, master_done);
     end loop;
