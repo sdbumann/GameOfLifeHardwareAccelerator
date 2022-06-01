@@ -119,6 +119,7 @@ architecture tb of game_of_life_block_tb is
           ) is
         begin
             wait until master_start = '1';
+            wait for CLK_PER;
             master_done <= '0';
             master_data <= master_address;
             wait for CLK_PER;

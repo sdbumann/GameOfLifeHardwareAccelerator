@@ -54,7 +54,7 @@ architecture tb of init_block_tb is
         
         -- Control signals for bram0
         signal ena0 : std_logic;
-        signal wea0 : std_logic;
+        signal wea0 : std_logic_vector(0 downto 0);
         signal addra0 : std_logic_vector(9 downto 0);
         signal dia0 : std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
         
@@ -76,8 +76,9 @@ architecture tb of init_block_tb is
           ) is
         begin
             wait until master_start = '1';
+            wait for CLK_PER;
             master_done <= '0';
-            master_data <= master_address;
+            master_data <= std_logic_vector(shift_right(unsigned(master_address),2));
             wait for CLK_PER;
             wait for CLK_PER;
             wait for CLK_PER;
@@ -88,6 +89,20 @@ architecture tb of init_block_tb is
 --            master_done <= '0';
             
         end WriteValue;
+        
+        COMPONENT blk_mem_gen_0
+            PORT (
+            clka : IN STD_LOGIC;
+            ena : IN STD_LOGIC;
+            wea : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+            addra : IN STD_LOGIC_VECTOR(9 DOWNTO 0);
+            dina : IN STD_LOGIC_VECTOR(1023 DOWNTO 0);
+            clkb : IN STD_LOGIC;
+            enb : IN STD_LOGIC;
+            addrb : IN STD_LOGIC_VECTOR(9 DOWNTO 0);
+            doutb : OUT STD_LOGIC_VECTOR(1023 DOWNTO 0)
+            );
+        END COMPONENT;
 
 --=============================================================================
 -- ARCHITECTURE BEGIN
@@ -114,22 +129,27 @@ begin
         
         -- Control signals for bram0
         ena0 => ena0,
-        wea0 => wea0,
+        wea0 => wea0(0),
         addra0 => addra0,
         dia0 => dia0,
         
         -- other signals 
         GameOfLifeAddress => GameOfLifeAddress,
         start => start,
-        done => done,
-        init_row_0_out => init_row_0_out,
-        init_row_1_out => init_row_1_out,
-        init_row_2_out => init_row_2_out
+        done => done
     );
     
-    bram0_inst : entity work.simple_dual_one_clock(syn)
-    port map(clk => CLKxCI, ena => ena0, enb => enb0, wea => wea0, addra => addra0, addrb => addrb0, dia => dia0,
-      dob => dob0
+    bram0_inst : blk_mem_gen_0
+    PORT MAP (
+        clka => CLKxCI,
+        ena => ena0,
+        wea => wea0,
+        addra => addra0,
+        dina => dia0,
+        clkb => CLKxCI,
+        enb => enb0,
+        addrb => addrb0,
+        doutb => dob0
     );
     
 
@@ -168,10 +188,11 @@ begin
     
     wait until RSTxRBI = '1';
     master_done<='1';
-    wait for CLK_PER;
-    wait for CLK_PER;
-    wait for CLK_PER;
-    wait for CLK_PER;
+    --start <= '1';
+--    wait for CLK_PER;
+--    wait for CLK_PER;
+--    wait for CLK_PER;
+--    wait for CLK_PER;
 
 
     -- fill working memory
