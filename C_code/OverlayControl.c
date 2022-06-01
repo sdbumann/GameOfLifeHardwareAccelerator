@@ -52,7 +52,7 @@ volatile uint32_t * MapMemIO(uint32_t baseAddr, uint32_t mapSize)
     #endif
     memMapSize = mapSize;
   }
-
+	//printf("test\n");
 	return memMapAddr;
 }
 

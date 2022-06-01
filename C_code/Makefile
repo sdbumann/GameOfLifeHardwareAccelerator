@@ -1,8 +1,11 @@
-all: game 
+all: GOL 
 
-game: game.cpp OverlayControl.c OverlayControl.h graphics.cpp graphics.hpp types.hpp utils.hpp utils.cpp
-	g++ -O3 -Wall game.cpp OverlayControl.c graphics.cpp utils.cpp -o game -lm -lcma -lpthread -lncurses
+GOL: GOL.cpp OverlayControl.c OverlayControl.h utils.hpp utils.cpp
+	g++ -O3 -Wall GOL.cpp OverlayControl.c  utils.cpp -o GOL -lm -lcma -lpthread -lncurses
+
+GOL_no_display: GOL_no_display.cpp OverlayControl.c OverlayControl.h utils.hpp utils.cpp
+	g++ -O3 -Wall GOL_no_display.cpp OverlayControl.c  utils.cpp -o GOL_no_display -lm -lcma -lpthread -lncurses
 
 clean:
-	rm -f game
+	rm -f GOL GOL_no_display
 

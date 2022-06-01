@@ -19,16 +19,16 @@ extern "C" {
 #define FRAME_BUFFER_HEIGHT 480
 #define FRAME_BUFFER_PIXELS (FRAME_BUFFER_WIDTH*FRAME_BUFFER_HEIGHT)
 #define FRAME_BUFFER_SIZE (FRAME_BUFFER_WIDTH*FRAME_BUFFER_HEIGHT*4)
-#define VSYNC_BASEADDR  0x43C80000
-enum {VSYNC_ENABLE = 1, VSYNC_ENABLE_INTERRUPT = 2, VSYNC_POLL = 4};
+
+
 
 //uint32_t backBuffer[FRAME_BUFFER_PIXELS];
 
-const uint32_t CHECKERBOARD_LENGTH (1024*1024);
+const uint32_t CHECKERBOARD_LENGTH (1024*1024/8);
 const uint32_t MEM_IS_CACHEABLE = 0;
 
 const uint32_t MAP_SIZE = 64*1024;
-const uint32_t BASE_ADDR = 0x83C00000;
+const uint32_t BASE_ADDR = 0x43C00000;
 
 const uint32_t WINDOW_LEFT_MIN = 0;
 const uint32_t WINDOW_TOP_MIN = 0;
@@ -37,27 +37,15 @@ const uint32_t WINDOW_TOP_MAX = 1024-FRAME_BUFFER_HEIGHT;
 const uint32_t WINDOW_INCREMENT = 100;
 
 
+
+
 // Register offsets.
 enum {START = 0, STOP = 1, DONE = 2, GAME_OF_LIFE_ADDRESS = 3, FRAME_BUFFER_ADDRESS = 4, WINDOW_TOP = 5, WINDOW_LEFT = 6};
-
-///////////////////////////////////////////////////////////////////////////////
-// Fills a framebuffer with a given solid color.
-// It's equivalent to memset().
-void FillColor(uint32_t * frame, uint32_t width, uint32_t height, uint32_t color);
 
 
 ///////////////////////////////////////////////////////////////////////////////
 int main(){
-  uint32_t * fb = (uint32_t*)cma_mmap(FRAME_BUFFER, FRAME_BUFFER_SIZE);
-  
-  volatile uint32_t * vsync = MapMemIO(VSYNC_BASEADDR, 64*1024);
-
-  if (vsync == NULL) {
-    printf("Error mmaping vsync device.\n");
-    return -1;
-  }
-  *(vsync + VSYNC_ENABLE_INTERRUPT) = 1;
-  *(vsync + VSYNC_ENABLE) = 1;
+   uint32_t * fb = (uint32_t*)cma_mmap(FRAME_BUFFER, FRAME_BUFFER_SIZE);
 
   volatile uint32_t * accelRegs = NULL;
   uint32_t * gol_checkerboard, * phy_gol_checkerboard;
@@ -90,19 +78,10 @@ int main(){
   for (uint32_t ii = 0; ii < CHECKERBOARD_LENGTH; ++ ii)
     gol_checkerboard[ii] = 1;//rand();
 
-  // Fill the screen with solid colors to verify proper functioning.
-  FillColor(fb, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT, 0x000000FF); // Red
-  usleep(500000);
-  FillColor(fb, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT, 0x0000FF00); // Green
-  usleep(500000);
-  FillColor(fb, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT, 0x00FF0000); // Blue
-  usleep(500000);
-  FillColor(fb, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT, 0); // Black
-
   PrintStringNCurses("------\nINSTRUCTIONS\n------\n\n"
         "Use the wasd keys to move the window.\n"
         "Press 'n' to start next iteration.\n"
-        "Use 'r' to kill al living cells and to revive dead ones.\n"
+        "Use 'r' to kill all living cells and to revive dead ones.\n"
         "Press 'q' to exit the simulation.\n");
 
 
@@ -115,23 +94,30 @@ int main(){
   *(accelRegs + WINDOW_TOP) = window_top_current;
   *(accelRegs + WINDOW_LEFT) = window_left_current;
 
-
-
-  for (uint32_t ii = 0; ii<20; ++ii){
-      //uint32_t ii = 20;
-        //printf("framebuffer value is: 0x%08X \r\n",fb[ii]);
-        printf("checkerboard value is: 0x%08X \r\n", gol_checkerboard[ii]);
-      }
-
-
-  *(accelRegs + START) = 1;
-  *(accelRegs + STOP) = 0;
-
-  struct timespec start, end;
+  /* *(accelRegs + START) = 1;
+  *(accelRegs + STOP) = 1;
+  *(accelRegs + START) = 0;
 
   int ch;
   do {
-    while (! *(vsync + VSYNC_POLL));  // Wait for vertical blanking period.
+    ch = getch(); // Returns a key or ERR if there are no keypresses.
+    printf("done is %d\r\n", *(accelRegs + DONE));
+  } while ( ch != 'q'); */
+
+
+  for (uint32_t ii = 0; ii<50; ++ii){
+      //uint32_t ii = 20;
+        //printf("framebuffer value at position %d is: 0x%08X \r\n",fb[ii]);
+        printf("checkerboard value at position %d is: 0x%08X \r\n", ii, gol_checkerboard[ii]);
+      }
+
+
+
+  struct timespec start, end;
+
+  
+  int ch;
+  do {
     ch = getch(); // Returns a key or ERR if there are no keypresses.
     if (ch == 'd'){//window_left is moved to the right
         printf("----------------------------------------------\r\n");
@@ -195,14 +181,14 @@ int main(){
       *(accelRegs + START) = 0;
       *(accelRegs + STOP) = 1;
       while ((*(accelRegs + DONE) = 0)){
-        usleep(5000);
+        usleep(5);
       }
       
       for (uint32_t ii = 0; ii < CHECKERBOARD_LENGTH; ++ ii)
         gol_checkerboard[ii] = ~gol_checkerboard[ii];
       printf("Dead cells are now alive and vice versa.\r\n");
       *(accelRegs + START) = 1;
-      *(accelRegs + STOP) = 0;
+      *(accelRegs + STOP) = 1;
     }
 
     *(accelRegs + START) = 0;
@@ -215,23 +201,24 @@ int main(){
       clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 
       *(accelRegs + START) = 1;
-      *(accelRegs + STOP) = 0;
-      // usleep(5000);
+      *(accelRegs + STOP) = 1; 
       *(accelRegs + START) = 0;
-      *(accelRegs + STOP) = 1;
 
-      while ((*(accelRegs + DONE) = 0)){
+      while ((*(accelRegs + DONE) == 0)){
         usleep(5000);
+        printf("done is %d\r\n", *(accelRegs + DONE));
+        break;//[TODO] take away
       }
+      printf("done is %d\r\n", *(accelRegs + DONE));
       clock_gettime(CLOCK_MONOTONIC_RAW, &end);
       unsigned long long elapsed = CalcTimeDiff(end, start);
       printf("Iteration done\r\n");
       printf("Iteration took %llu ns\r\n", elapsed);
 
-      for (uint32_t ii = 0; ii<20; ++ii){
+      for (uint32_t ii = 0; ii<50; ++ii){
       //uint32_t ii = 20;
         //printf("framebuffer value is: 0x%08X \r\n",fb[ii]);
-        printf("checkerboard value is: 0x%08X \r\n", gol_checkerboard[ii]);
+        printf("checkerboard value at position %d is: 0x%08X \r\n", ii, gol_checkerboard[ii]);
       }
 
     }
@@ -240,9 +227,9 @@ int main(){
       printf("----------------------------------------------\r\n");
       printf("'p' press detected\r\n");
       printf("----------------------------------------------\r\n");
-      for (uint32_t ii = 0; ii<20; ++ii){
+      for (uint32_t ii = 20; ii<40; ++ii){
       //uint32_t ii = 20;
-        //printf("framebuffer value is: 0x%08X \r\n",fb[ii]);
+        printf("framebuffer value is: 0x%08X \r\n",fb[ii]);
         printf("checkerboard value is: 0x%08X \r\n", gol_checkerboard[ii]);
       }
     }
