@@ -1,5 +1,5 @@
 --=============================================================================
--- @file pwm_tb.vhdl
+-- @file game_of_life_tb.vhdl
 --=============================================================================
 -- Standard library
 library ieee;
@@ -16,7 +16,7 @@ use work.constants.all;
 --
 -- game_of_life_tb.vhd
 --
--- @brief This file specifies the test-bench for the game of life HDL block
+-- @brief This file specifies the test-bench for the game of life
 --
 --=============================================================================
 
@@ -43,13 +43,6 @@ architecture tb of game_of_life_tb is
         
         signal line_solution           : std_logic_vector(WORD_LENGTH-1 downto 0);
         signal done_gol                : std_logic;
-
---=============================================================================
--- COMPONENT DECLARATIONS
---=============================================================================
-    -- master component
-    -- FSM component
-    
 
 
 --=============================================================================

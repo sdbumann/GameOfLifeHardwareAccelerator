@@ -1,5 +1,5 @@
 --=============================================================================
--- @file pwm_tb.vhdl
+-- @file game_of_life_block_tb.vhdl
 --=============================================================================
 -- Standard library
 library ieee;
@@ -15,7 +15,7 @@ use work.constants.all;
 
 --=============================================================================
 --
--- game_of_life_tb.vhd
+-- game_of_life_block_tb.vhd
 --
 -- @brief This file specifies the test-bench for the game of life HDL block
 --
@@ -34,14 +34,11 @@ architecture tb of game_of_life_block_tb is
         --TB constants
         constant CLK_PER : time    := 8 ns;   -- 125 MHz clk freq
         constant CLK_LIM : integer := 2**10;  -- Stops simulation from running forever if circuit is not correct
-        --constant period: time := 20 ns;
     
         signal CLKxCI  : std_logic := '0';
         signal RSTxRBI : std_logic := '0';
         --------------------------------------
-        
-        
-        
+
         constant C_M00_AXI_ADDR_WIDTH  : integer := 32;
         constant C_M00_AXI_DATA_WIDTH  : integer := 32;
     
@@ -134,14 +131,12 @@ architecture tb of game_of_life_block_tb is
 -- ARCHITECTURE BEGIN
 --=============================================================================
 begin
-
-
--- Memory reader/writer (master)
   init_block_inst : entity work.init_block(rtl)
     port map (
         CLK => CLKxCI,
         resetn => RSTxRBI,
         --------------------------------------
+        
         -- master
         master_start => master_start,
         master_done => master_done,
@@ -272,16 +267,13 @@ begin
     
 
   p_stim: process
-
   begin
-    
     wait until RSTxRBI = '1';
     master_done<='1';
     wait for CLK_PER;
     wait for CLK_PER;
     wait for CLK_PER;
     wait for CLK_PER;
-
 
     -- initialize bram
     rState <= INIT_BLOCK;

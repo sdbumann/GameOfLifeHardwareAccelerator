@@ -1,5 +1,5 @@
 --=============================================================================
--- @file pwm_tb.vhdl
+-- @file fsm_top_tb.vhdl
 --=============================================================================
 -- Standard library
 library ieee;
@@ -15,9 +15,9 @@ use work.constants.all;
 
 --=============================================================================
 --
--- game_of_life_tb.vhd
+-- fsm_top_tb.vhd
 --
--- @brief This file specifies the test-bench for the game of life HDL block
+-- @brief This file specifies the test-bench for the fsm top block
 --
 --=============================================================================
 
@@ -39,8 +39,6 @@ architecture tb of fsm_top_tb is
         signal CLKxCI  : std_logic := '0';
         signal RSTxRBI : std_logic := '0';
         --------------------------------------
-        
-        
         
         constant C_M00_AXI_ADDR_WIDTH  : integer := 32;
         constant C_M00_AXI_DATA_WIDTH  : integer := 32;
@@ -85,8 +83,10 @@ begin
         accelStart => accelStart,
         accelDone => accelDone,
         accelStop => accelStop,
+        
         -- init Block signals
         GameOfLifeAddress => GameOfLifeAddress,
+        
         -- Video Driver signals
         windowTop => windowTop,
         windowLeft => windowLeft,

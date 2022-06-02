@@ -1,5 +1,5 @@
 --=============================================================================
--- @file pwm_tb.vhdl
+-- @file init_block_tb.vhdl
 --=============================================================================
 -- Standard library
 library ieee;
@@ -14,9 +14,9 @@ use work.constants.all;
 
 --=============================================================================
 --
--- game_of_life_tb.vhd
+-- init_block_tb.vhd
 --
--- @brief This file specifies the test-bench for the game of life HDL block
+-- @brief This file specifies the test-bench for the game of life init block
 --
 --=============================================================================
 
@@ -38,8 +38,6 @@ architecture tb of init_block_tb is
         signal CLKxCI  : std_logic := '0';
         signal RSTxRBI : std_logic := '0';
         --------------------------------------
-        
-        
         
         constant C_M00_AXI_ADDR_WIDTH  : integer := 32;
         constant C_M00_AXI_DATA_WIDTH  : integer := 32;
@@ -109,10 +107,7 @@ begin
 
 -- Memory reader/writer (master)
   init_block_inst : entity work.init_block(rtl)
---    generic map ( 
---        C_M00_AXI_ADDR_WIDTH => 32,
---        C_M00_AXI_DATA_WIDTH => 32,
---    )
+
     port map (
         CLK => CLKxCI,
         resetn => RSTxRBI,
@@ -185,19 +180,12 @@ begin
     
     wait until RSTxRBI = '1';
     master_done<='1';
-    --start <= '1';
---    wait for CLK_PER;
---    wait for CLK_PER;
---    wait for CLK_PER;
---    wait for CLK_PER;
-
 
     -- fill working memory
     wait for CLK_PER;
     GameOfLifeAddress <= std_logic_vector(to_unsigned(0,GameOfLifeAddress'length));
     start <= '1';
---    wait for CLK_PER;
---    start <= '0';
+
     for i in 0 to CHECKERBOARD_SIZE*CHECKERBOARD_SIZE/32-1 loop
         ReadValue(master_address, master_dataRead, master_start, master_done);
     end loop;

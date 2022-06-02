@@ -1,5 +1,5 @@
 --=============================================================================
--- @file pwm_tb.vhdl
+-- @file VideoDriver_tb.vhdl
 --=============================================================================
 -- Standard library
 library ieee;
@@ -15,9 +15,9 @@ use work.constants.all;
 
 --=============================================================================
 --
--- game_of_life_tb.vhd
+-- VideoDriver_tb.vhd
 --
--- @brief This file specifies the test-bench for the game of life HDL block
+-- @brief This file specifies the test-bench for the game of life Video driver block
 --
 --=============================================================================
 
@@ -34,18 +34,14 @@ architecture tb of VideoDriver_tb is
         --TB constants
         constant CLK_PER : time    := 8 ns;   -- 125 MHz clk freq
         constant CLK_LIM : integer := 2**10;  -- Stops simulation from running forever if circuit is not correct
-        --constant period: time := 20 ns;
 
-        
-        
         -- Parameters of the AXI master bus interface:
         constant C_M00_AXI_ADDR_WIDTH  : integer := 32;
         constant C_M00_AXI_DATA_WIDTH  : integer := 32;
-   
-
+        
+        -- video driver signals
         signal CLKxCI  : std_logic;
         signal RSTxRBI : std_logic;
-        --zoomFact : in std_logic_vector(SYS_DATA_LEN-1 downto 0);
         signal GoLData :  std_logic_vector(GoL_DATA_LEN-1 downto 0);
         signal windowTop :  std_logic_vector(SYS_DATA_LEN-1 downto 0); -- with respect to the 1024 x 1024 grid
         signal windowLeft :  std_logic_vector(SYS_DATA_LEN-1 downto 0); -- with respect to the 1024 x 1024 grid
@@ -58,6 +54,7 @@ architecture tb of VideoDriver_tb is
         signal pixelAddr :  std_logic_vector(SYS_ADDR_LEN-1 downto 0);
         signal frameDone : std_logic;
         
+        -- master signals
         signal master_start :  std_logic;
         signal master_address :  std_logic_vector(C_M00_AXI_ADDR_WIDTH-1 downto 0);
         signal master_dataWrite :  std_logic_vector(C_M00_AXI_DATA_WIDTH-1 downto 0);
@@ -97,8 +94,6 @@ architecture tb of VideoDriver_tb is
         END COMPONENT;
 
         procedure WriteValue(
-          --signal master_address : in std_logic_vector(32-1 downto 0);
-          --signal master_data : out std_logic_vector(32-1 downto 0);
           signal master_start : std_logic;
           signal master_done : out std_logic
           ) is
@@ -106,60 +101,17 @@ architecture tb of VideoDriver_tb is
             wait until master_start = '1';
             wait for CLK_PER;
             master_done <= '0';
---            master_data <= master_address;
---            wait for CLK_PER;
---            wait for CLK_PER;
             wait for CLK_PER;
             wait for CLK_PER;
             wait for CLK_PER;
             master_done <= '1';
---            wait for CLK_PER;
---            master_done <= '0';
-            
         end WriteValue;
         
-        
-        
-      
-
-
-
 
 --=============================================================================
 -- ARCHITECTURE BEGIN
 --=============================================================================
 begin
-
-    -- Memory reader/writer (master)
---  init_block_inst : entity work.init_block(rtl)
---    port map (
---        CLK => CLKxCI,
---        resetn => RSTxRBI,
---        --------------------------------------
---        -- master
---        master_start => master_start,
---        master_done => master_done,
---        master_readWrite => master_readWrite,
---        master_address => master_address,
---        master_dataRead => master_dataRead,
-        
---        -- Control signals for bram0
---        ena0 => ena0,
---        wea0 => wea0,
---        addra0 => addra0_init_block,
---        dia0 => dia0_init_block,
-        
---        -- other signals 
---        GameOfLifeAddress => GameOfLifeAddress,
---        start => init_start,
---        done => init_done
---    );
---=============================================================================
--- COMPONENT DECLARATIONS
---=============================================================================
-    -- master component
-    -- FSM component
-    
 
 -- Memory reader/writer (master)
   VideoDriver: entity work.VideoDriver(rtl)
@@ -184,7 +136,6 @@ begin
         enb0 => enb0,
         addrb0 => addrb0,
         dob0 => dob0,
-    
     
         enb1 => enb1,
         addrb1 => addrb1,
@@ -255,10 +206,7 @@ begin
                 x"5555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555";
         wait for CLK_PER;
     end loop;
-    
 
-        
-    
     master_done<='1';
 
     wait for CLK_PER;
@@ -267,10 +215,8 @@ begin
     wait for CLK_PER;
     VideoDriverStart <= '0';
     for i in 0 to CHECKERBOARD_SIZE*CHECKERBOARD_SIZE loop
-        --WriteValue(master_address, master_dataRead, master_start, master_done);
         WriteValue(master_start, master_done);
     end loop;
-    
    
     wait until VideoDriverDone='1';
     wait for 10*CLK_PER;
