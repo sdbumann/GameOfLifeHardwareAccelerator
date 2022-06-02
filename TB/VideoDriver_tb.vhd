@@ -76,21 +76,24 @@ architecture tb of VideoDriver_tb is
         signal master_dataWrite :  std_logic_vector(C_M00_AXI_DATA_WIDTH-1 downto 0);
         signal master_readWrite :  std_logic;
         signal master_done : std_logic;
+        signal master_dataRead : std_logic_Vector(C_M00_AXI_DATA_WIDTH-1 downto 0);
         
         signal enb0 : std_logic;
         signal addrb0 : std_logic_vector(9 downto 0);
-        
-        -- Control signals for bram1
-    
-        signal enb1 : std_logic;
-        signal addrb1 : std_logic_vector(9 downto 0);
         signal dob0:std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
         signal dob1:std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
-        
+
         signal work_bram_is : std_logic;
         
         signal colCounter_video_driver :  unsigned(GoL_ADDR_LEN-1 downto 0);
         signal lineCounter_video_driver :  unsigned(GoL_ADDR_LEN-1 downto 0);
+        
+        signal ena1 : std_logic;
+        signal wea1 : std_logic_vector(0 downto 0);
+        signal addra1 : STD_LOGIC_VECTOR(9 DOWNTO 0);
+        signal dia1 : STD_LOGIC_VECTOR(1023 DOWNTO 0);
+        signal enb1 : std_logic;
+        signal addrb1 : std_logic_vector(9 downto 0);
 
         procedure WriteValue(
           signal master_address : in std_logic_vector(32-1 downto 0);
@@ -114,10 +117,7 @@ architecture tb of VideoDriver_tb is
             
         end WriteValue;
         
-        signal ena1 : std_logic;
-        signal wea1 : std_logic_vector(0 downto 0);
-        signal addra1 : STD_LOGIC_VECTOR(9 DOWNTO 0);
-        signal dia1 : STD_LOGIC_VECTOR(1023 DOWNTO 0);
+        
         
         
          COMPONENT blk_mem_gen_0
@@ -133,6 +133,31 @@ architecture tb of VideoDriver_tb is
             doutb : OUT STD_LOGIC_VECTOR(1023 DOWNTO 0)
             );
         END COMPONENT;
+begin
+    -- Memory reader/writer (master)
+  init_block_inst : entity work.init_block(rtl)
+    port map (
+        CLK => CLKxCI,
+        resetn => RSTxRBI,
+        --------------------------------------
+        -- master
+        master_start => master_start,
+        master_done => master_done,
+        master_readWrite => master_readWrite,
+        master_address => master_address,
+        master_dataRead => master_dataRead,
+        
+        -- Control signals for bram0
+        ena0 => ena0,
+        wea0 => wea0,
+        addra0 => addra0_init_block,
+        dia0 => dia0_init_block,
+        
+        -- other signals 
+        GameOfLifeAddress => GameOfLifeAddress,
+        start => init_start,
+        done => init_done
+    );
 --=============================================================================
 -- COMPONENT DECLARATIONS
 --=============================================================================
@@ -229,6 +254,42 @@ begin
   begin
     
     wait until RSTxRBI = '1';
+    master_done<='1';
+    wait for CLK_PER;
+    wait for CLK_PER;
+    wait for CLK_PER;
+    wait for CLK_PER;
+
+
+--bram1_inst : blk_mem_gen_0
+--    PORT MAP (
+--        clka => CLKxCI,
+--        ena => ena1,
+--        wea => wea1,
+--        addra => addra1,
+--        dina => dia1,
+--        clkb => CLKxCI,
+--        enb => enb1,
+--        addrb => addrb1,
+--        doutb => dob1
+--    );
+
+
+    -- fill working memory
+    wait for CLK_PER;
+    GoLAddr <= std_logic_vector(to_unsigned(0,GoLAddr'length));
+    init_start <= '1';
+--    wait for CLK_PER;
+--    init_start <= '0';
+    for i in 0 to CHECKERBOARD_SIZE*CHECKERBOARD_SIZE/32-1 loop
+        WriteValue(master_address, master_dataRead, master_start, master_done);
+    end loop;
+    wait until init_done='1';
+    wait until rising_edge(CLKxCI);
+    
+    
+    
+    
     
     work_bram_is <= '0';
 
