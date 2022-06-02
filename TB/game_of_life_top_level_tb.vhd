@@ -1,5 +1,5 @@
 --=============================================================================
--- @file pwm_tb.vhdl
+-- @file game_of_life_top_level_tb.vhdl
 --=============================================================================
 -- Standard library
 library ieee;
@@ -14,9 +14,9 @@ use work.constants.all;
 
 --=============================================================================
 --
--- game_of_life_tb.vhd
+-- game_of_life_top_level_tb.vhd
 --
--- @brief This file specifies the test-bench for the game of life HDL block
+-- @brief This file specifies the test-bench for the game of life top level HDL block
 --
 --=============================================================================
 
