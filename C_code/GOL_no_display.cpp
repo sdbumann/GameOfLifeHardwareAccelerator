@@ -24,7 +24,7 @@ extern "C" {
 
 //uint32_t backBuffer[FRAME_BUFFER_PIXELS];
 
-const uint32_t CHECKERBOARD_LENGTH (1024*1024/8);
+const uint32_t CHECKERBOARD_LENGTH (1024*1024/32);
 const uint32_t MEM_IS_CACHEABLE = 0;
 
 const uint32_t MAP_SIZE = 64*1024;
@@ -93,19 +93,12 @@ int main(){
   *(accelRegs + FRAME_BUFFER_ADDRESS) = (uint32_t)FRAME_BUFFER;
   *(accelRegs + WINDOW_TOP) = window_top_current;
   *(accelRegs + WINDOW_LEFT) = window_left_current;
-
-  /* *(accelRegs + START) = 1;
-  *(accelRegs + STOP) = 1;
   *(accelRegs + START) = 0;
+  *(accelRegs + STOP) = 1; 
 
-  int ch;
-  do {
-    ch = getch(); // Returns a key or ERR if there are no keypresses.
-    printf("done is %d\r\n", *(accelRegs + DONE));
-  } while ( ch != 'q'); */
+  printf("DONE IS %d\r\n", *(accelRegs + DONE));
 
-
-  for (uint32_t ii = 0; ii<50; ++ii){
+  for (uint32_t ii = 100; ii<150; ++ii){
       //uint32_t ii = 20;
         //printf("framebuffer value at position %d is: 0x%08X \r\n",fb[ii]);
         printf("checkerboard value at position %d is: 0x%08X \r\n", ii, gol_checkerboard[ii]);
@@ -114,7 +107,6 @@ int main(){
 
 
   struct timespec start, end;
-
   
   int ch;
   do {
@@ -205,17 +197,18 @@ int main(){
       *(accelRegs + START) = 0;
 
       while ((*(accelRegs + DONE) == 0)){
-        usleep(5000);
-        printf("done is %d\r\n", *(accelRegs + DONE));
-        break;//[TODO] take away
+        usleep(5);
       }
-      printf("done is %d\r\n", *(accelRegs + DONE));
+      /* printf("start waiting \r\n");
+      usleep(500000);
+      printf("stop waiting \r\n"); */
+
       clock_gettime(CLOCK_MONOTONIC_RAW, &end);
       unsigned long long elapsed = CalcTimeDiff(end, start);
       printf("Iteration done\r\n");
       printf("Iteration took %llu ns\r\n", elapsed);
 
-      for (uint32_t ii = 0; ii<50; ++ii){
+      for (uint32_t ii = 100; ii<150; ++ii){
       //uint32_t ii = 20;
         //printf("framebuffer value is: 0x%08X \r\n",fb[ii]);
         printf("checkerboard value at position %d is: 0x%08X \r\n", ii, gol_checkerboard[ii]);
@@ -235,7 +228,10 @@ int main(){
     }
 
   } while ( ch != 'q');
-
+  *(accelRegs + START) = 0;
+  *(accelRegs + STOP) = 1; 
+  printf("we are done with all this stuff\r\n");
+  usleep(5000000);
   RestoreConsole(); // If your program crashes and you loose the terminal, write: stty sane^J
   UnmapMemIO();
   return 0;

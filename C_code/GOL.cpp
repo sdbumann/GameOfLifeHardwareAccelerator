@@ -24,7 +24,9 @@ enum {VSYNC_ENABLE = 1, VSYNC_ENABLE_INTERRUPT = 2, VSYNC_POLL = 4};
 
 //uint32_t backBuffer[FRAME_BUFFER_PIXELS];
 
-const uint32_t CHECKERBOARD_LENGTH (1024*1024);
+const uint32_t CHECKERBOARD_WIDTH (1024);
+const uint32_t CHECKERBOARD_HEIGHT (1024);
+const uint32_t CHECKERBOARD_LENGTH (CHECKERBOARD_WIDTH*CHECKERBOARD_HEIGHT/8);
 const uint32_t MEM_IS_CACHEABLE = 0;
 
 const uint32_t MAP_SIZE = 64*1024;
@@ -34,7 +36,7 @@ const uint32_t WINDOW_LEFT_MIN = 0;
 const uint32_t WINDOW_TOP_MIN = 0;
 const uint32_t WINDOW_LEFT_MAX = 1024-FRAME_BUFFER_WIDTH;
 const uint32_t WINDOW_TOP_MAX = 1024-FRAME_BUFFER_HEIGHT;
-const uint32_t WINDOW_INCREMENT = 100;
+const uint32_t WINDOW_INCREMENT = 16;
 
 
 // Register offsets.
@@ -88,7 +90,8 @@ int main(){
 
   // fill game of life checkerboard randomly
   for (uint32_t ii = 0; ii < CHECKERBOARD_LENGTH; ++ ii)
-    gol_checkerboard[ii] = 1;//rand();
+    gol_checkerboard[ii] = ii;//rand();
+    //gol_checkerboard[ii] = 0xFFFFFFFF;
 
   // Fill the screen with solid colors to verify proper functioning.
   FillColor(fb, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT, 0x000000FF); // Red
@@ -100,8 +103,9 @@ int main(){
   FillColor(fb, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT, 0); // Black
 
   PrintStringNCurses("------\nINSTRUCTIONS\n------\n\n"
-        "Use the wasd keys to move the window.\n"
-        "Press 'n' to start next iteration.\n"
+        "Use the 'wasd' keys to move the window.\n"
+        "Press 'n' to start the next iteration.\n"
+        "The 'e' key can be used to kill all cells that are alive on the current screen\n"
         "Use 'r' to kill al living cells and to revive dead ones.\n"
         "Press 'q' to exit the simulation.\n");
 
@@ -116,16 +120,23 @@ int main(){
   *(accelRegs + WINDOW_LEFT) = window_left_current;
 
 
-
-  for (uint32_t ii = 0; ii<20; ++ii){
-      //uint32_t ii = 20;
-        //printf("framebuffer value is: 0x%08X \r\n",fb[ii]);
-        printf("checkerboard value is: 0x%08X \r\n", gol_checkerboard[ii]);
-      }
-
-
   *(accelRegs + START) = 1;
   *(accelRegs + STOP) = 0;
+  int ch2;
+  do {
+    ch2 = getch();
+    for (uint32_t ii = 0; ii<50; ++ii){
+    printf("checkerboard value is: 0x%08X \r\n", gol_checkerboard[ii]);
+  }
+    
+  }while (ch2 != 'q');
+
+  *(accelRegs + START) = 0;
+  *(accelRegs + STOP) = 1;
+
+  for (uint32_t ii = 0; ii<50; ++ii){
+    printf("checkerboard value at position %d is: 0x%08X \r\n", ii, gol_checkerboard[ii]);
+  }
 
   struct timespec start, end;
 
@@ -133,6 +144,12 @@ int main(){
   do {
     while (! *(vsync + VSYNC_POLL));  // Wait for vertical blanking period.
     ch = getch(); // Returns a key or ERR if there are no keypresses.
+
+    *(accelRegs + WINDOW_TOP) = window_top_current;
+    *(accelRegs + WINDOW_LEFT) = window_left_current;
+    *(accelRegs + START) = 0;
+    *(accelRegs + STOP) = 1;
+
     if (ch == 'd'){//window_left is moved to the right
         printf("----------------------------------------------\r\n");
         printf("'d' press detected\r\n");
@@ -159,34 +176,31 @@ int main(){
       }
     }
 
-    if (ch == 'w'){//window_top is moved up
-      printf("----------------------------------------------\r\n");
-      printf("'w' press detected\r\n");
-      printf("----------------------------------------------\r\n");
-      if (window_top_current+WINDOW_INCREMENT < WINDOW_LEFT_MAX){
-        printf("Move window up.\r\n");
-        window_top_current=window_top_current+WINDOW_INCREMENT;
-      }
-      else{
-        printf("Window can not be moved further up.\r\n");
-      }
-    }
-
-    if (ch == 's'){//window_top is moved down
+    if (ch == 's'){//window_top is moved up
       printf("----------------------------------------------\r\n");
       printf("'s' press detected\r\n");
       printf("----------------------------------------------\r\n");
-      if ((int)(window_top_current-WINDOW_INCREMENT) >= (int)WINDOW_LEFT_MIN){
+      if (window_top_current+WINDOW_INCREMENT < WINDOW_TOP_MAX){
         printf("Move window down.\r\n");
-        window_top_current=window_top_current-WINDOW_INCREMENT;
+        window_top_current=window_top_current+WINDOW_INCREMENT;
       }
       else{
         printf("Window can not be moved further down.\r\n");
       }
     }
 
-    *(accelRegs + WINDOW_TOP) = window_top_current;
-    *(accelRegs + WINDOW_LEFT) = window_left_current;
+    if (ch == 'w'){//window_top is moved down
+      printf("----------------------------------------------\r\n");
+      printf("'w' press detected\r\n");
+      printf("----------------------------------------------\r\n");
+      if ((int)(window_top_current-WINDOW_INCREMENT) >= (int)WINDOW_TOP_MIN){
+        printf("Move window up.\r\n");
+        window_top_current=window_top_current-WINDOW_INCREMENT;
+      }
+      else{
+        printf("Window can not be moved further up.\r\n");
+      }
+    }
 
     if (ch == 'r'){//Dead cells are now alive and vice versa
       printf("----------------------------------------------\r\n");
@@ -194,19 +208,32 @@ int main(){
       printf("----------------------------------------------\r\n");
       *(accelRegs + START) = 0;
       *(accelRegs + STOP) = 1;
-      while ((*(accelRegs + DONE) = 0)){
-        usleep(5000);
+      while (*(accelRegs + DONE) == 0){
+        usleep(5);
       }
       
       for (uint32_t ii = 0; ii < CHECKERBOARD_LENGTH; ++ ii)
         gol_checkerboard[ii] = ~gol_checkerboard[ii];
       printf("Dead cells are now alive and vice versa.\r\n");
-      *(accelRegs + START) = 1;
-      *(accelRegs + STOP) = 0;
     }
 
-    *(accelRegs + START) = 0;
-    *(accelRegs + STOP) = 1; 
+    if (ch == 'e'){//Dead cells are now alive and vice versa
+      printf("----------------------------------------------\r\n");
+      printf("'e' press detected\r\n");
+      printf("----------------------------------------------\r\n");
+      *(accelRegs + START) = 0;
+      *(accelRegs + STOP) = 1;
+      while (*(accelRegs + DONE) == 0){
+        usleep(5);
+      }
+      
+      for (uint32_t ii = window_top_current; ii < window_top_current+FRAME_BUFFER_HEIGHT; ++ ii){
+        for (uint32_t jj = window_left_current; jj < window_left_current+FRAME_BUFFER_WIDTH; ++ jj){
+          gol_checkerboard[ii*32 + jj] = 0;
+        }
+      }
+      printf("Kill all cells that are alive on the current screen.\r\n");
+    }
 
     if (ch == 'n'){//next iteration please
       printf("----------------------------------------------\r\n");
@@ -215,12 +242,10 @@ int main(){
       clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 
       *(accelRegs + START) = 1;
-      *(accelRegs + STOP) = 0;
-      // usleep(5000);
-      *(accelRegs + START) = 0;
       *(accelRegs + STOP) = 1;
+      *(accelRegs + START) = 0;
 
-      while ((*(accelRegs + DONE) = 0)){
+      while (*(accelRegs + DONE) == 0){
         usleep(5000);
       }
       clock_gettime(CLOCK_MONOTONIC_RAW, &end);
@@ -228,19 +253,18 @@ int main(){
       printf("Iteration done\r\n");
       printf("Iteration took %llu ns\r\n", elapsed);
 
-      for (uint32_t ii = 0; ii<20; ++ii){
+      for (uint32_t ii = 0; ii<50; ++ii){
       //uint32_t ii = 20;
         //printf("framebuffer value is: 0x%08X \r\n",fb[ii]);
-        printf("checkerboard value is: 0x%08X \r\n", gol_checkerboard[ii]);
+        printf("checkerboard value at %d is: 0x%08X \r\n", ii, gol_checkerboard[ii]);
       }
-
     }
 
     if (ch == 'p'){
       printf("----------------------------------------------\r\n");
       printf("'p' press detected\r\n");
       printf("----------------------------------------------\r\n");
-      for (uint32_t ii = 0; ii<20; ++ii){
+      for (uint32_t ii = 0; ii<50; ++ii){
       //uint32_t ii = 20;
         //printf("framebuffer value is: 0x%08X \r\n",fb[ii]);
         printf("checkerboard value is: 0x%08X \r\n", gol_checkerboard[ii]);
