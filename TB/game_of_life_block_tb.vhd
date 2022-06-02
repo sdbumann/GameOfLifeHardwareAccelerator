@@ -104,7 +104,6 @@ architecture tb of game_of_life_block_tb is
         signal init_done : std_logic;
         signal GOL_block_start :  std_logic;
         signal GOL_block_done : std_logic;
-        signal init_row_0_out, init_row_1_out, init_row_2_out : std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
         signal work_bram_is : std_logic := '0';
      
         type TState is (IDLE, INIT_BLOCK, GAME_OF_LIFE_BLOCK, SEND_TO_FRAME_BUFFER, SEND_TO_DAAM);
@@ -165,10 +164,7 @@ begin
         -- other signals 
         GameOfLifeAddress => GameOfLifeAddress,
         start => init_start,
-        done => init_done,
-        init_row_0_out => init_row_0_out,
-        init_row_1_out => init_row_1_out,
-        init_row_2_out => init_row_2_out
+        done => init_done
     );
     
     bram0_inst : entity work.simple_dual_one_clock(syn)
@@ -203,9 +199,6 @@ begin
     -- other signals 
     start  => GOL_block_start,
     done  => GOL_block_done,
-    init_row_0 => init_row_0_out, 
-    init_row_1 => init_row_1_out,
-    init_row_2 => init_row_2_out,
     work_bram_is => work_bram_is
     );
     
