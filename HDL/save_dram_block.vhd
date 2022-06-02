@@ -137,21 +137,21 @@ begin
         when READ_BRAM_WAIT =>
             -- one needs 2 cycles to read from dram -> thus give tha address and enable='1' here and read in in next state of FSM
             if work_bram_is = '0' then
-                addrb1 <= std_logic_vector(count_row_p(CHECKERBOARD_SIZE_NUM_BITS-1 downto 0)+1);
+                addrb1 <= std_logic_vector(count_row_p(CHECKERBOARD_SIZE_NUM_BITS-1 downto 0));
                 enb1 <= '1';
             else
-                addrb0 <= std_logic_vector(count_row_p(CHECKERBOARD_SIZE_NUM_BITS-1 downto 0)+1);
+                addrb0 <= std_logic_vector(count_row_p(CHECKERBOARD_SIZE_NUM_BITS-1 downto 0));
                 enb0 <= '1';
             end if;
             nrState <= READ_BRAM;
             
         when READ_BRAM =>
             if work_bram_is = '0' then
-                addrb1 <= std_logic_vector(count_row_p(CHECKERBOARD_SIZE_NUM_BITS-1 downto 0)+1);
+                addrb1 <= std_logic_vector(count_row_p(CHECKERBOARD_SIZE_NUM_BITS-1 downto 0));
                 enb1 <= '1';
                 row_n <= dob1;
             else
-                addrb0 <= std_logic_vector(count_row_p(CHECKERBOARD_SIZE_NUM_BITS-1 downto 0)+1);
+                addrb0 <= std_logic_vector(count_row_p(CHECKERBOARD_SIZE_NUM_BITS-1 downto 0));
                 enb0 <= '1';
                 row_n <= dob0;
             end if;
