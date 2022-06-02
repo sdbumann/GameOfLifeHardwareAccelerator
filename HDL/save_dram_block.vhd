@@ -98,9 +98,9 @@ begin
     nrState                 <= rState;
     row_n                 <= row_p;
     
-    count_line_reset<='0';
     count_row_reset<='0';
     count_line_en <= '0';
+    count_line_reset <= '0';
     count_row_en <= '0';
     
     dia0 <= (others => '0');
@@ -125,6 +125,7 @@ begin
 
     case rState is
         when IDLE => 
+            row_n <= (others => '0');
             done <= '1';
             count_row_reset <= '1';
             count_line_reset <= '1';
@@ -204,7 +205,7 @@ begin
   --line counter
 --  count_line_done <= '1' when count_line_p = to_unsigned(NUM_INST, count_line_p'length) else
 --                     '0';
-  count_line_n <=   --to_unsigned(0, count_line_n'length) when (count_line_done='1' or count_line_reset='1') else
+  count_line_n <=   to_unsigned(0, count_line_n'length) when count_line_reset='1' else
                     count_line_p + to_unsigned(1, count_line_p'length) when count_line_en = '1' else
                     count_line_p;         
                     
