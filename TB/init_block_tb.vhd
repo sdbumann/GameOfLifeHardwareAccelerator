@@ -68,10 +68,10 @@ architecture tb of init_block_tb is
         signal done : std_logic;
         signal init_row_0_out, init_row_1_out, init_row_2_out : std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
      
-        procedure WriteValue(
+        procedure ReadValue(
           signal master_address : in std_logic_vector(32-1 downto 0);
           signal master_data : out std_logic_vector(32-1 downto 0);
-          signal master_start : std_logic;
+          signal master_start : in std_logic;
           signal master_done : out std_logic
           ) is
         begin
@@ -88,7 +88,7 @@ architecture tb of init_block_tb is
 --            wait for CLK_PER;
 --            master_done <= '0';
             
-        end WriteValue;
+        end ReadValue;
         
         COMPONENT blk_mem_gen_0
             PORT (
@@ -202,7 +202,7 @@ begin
 --    wait for CLK_PER;
 --    start <= '0';
     for i in 0 to CHECKERBOARD_SIZE*CHECKERBOARD_SIZE/32-1 loop
-        WriteValue(master_address, master_dataRead, master_start, master_done);
+        ReadValue(master_address, master_dataRead, master_start, master_done);
     end loop;
     wait until done='1';
     wait until rising_edge(CLKxCI);

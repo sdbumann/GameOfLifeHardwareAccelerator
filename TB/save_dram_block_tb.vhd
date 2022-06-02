@@ -127,6 +127,51 @@ architecture tb of save_dram_block_tb is
      
         type TState is (IDLE, INIT_BLOCK, GAME_OF_LIFE_BLOCK, SEND_TO_FRAME_BUFFER, SAVE_DRAM_BLOCK);
         signal rState, nrState : TState;
+        
+        procedure WriteValue(
+          signal master_address : in std_logic_vector(32-1 downto 0);
+          signal master_data : in std_logic_vector(32-1 downto 0);
+          signal master_start : in std_logic;
+          signal master_done : out std_logic
+          ) is
+        begin
+            wait until master_start = '1';
+            wait for CLK_PER;
+            master_done <= '0';
+            --master_data <= std_logic_vector(shift_right(unsigned(master_address),2));
+            wait for CLK_PER;
+            wait for CLK_PER;
+            wait for CLK_PER;
+            wait for CLK_PER;
+            wait for CLK_PER;
+            master_done <= '1';
+--            wait for CLK_PER;
+--            master_done <= '0';
+            
+        end WriteValue;
+        
+        
+        procedure ReadValue(
+          signal master_address : in std_logic_vector(32-1 downto 0);
+          signal master_data : out std_logic_vector(32-1 downto 0);
+          signal master_start : in std_logic;
+          signal master_done : out std_logic
+          ) is
+        begin
+            wait until master_start = '1';
+            wait for CLK_PER;
+            master_done <= '0';
+            master_data <= master_address;
+            wait for CLK_PER;
+            wait for CLK_PER;
+            wait for CLK_PER;
+            wait for CLK_PER;
+            wait for CLK_PER;
+            master_done <= '1';
+--            wait for CLK_PER;
+--            master_done <= '0';
+            
+        end ReadValue;
 
 --=============================================================================
 -- ARCHITECTURE BEGIN
@@ -156,10 +201,7 @@ begin
         -- other signals 
         GameOfLifeAddress => GameOfLifeAddress,
         start => init_start,
-        done => init_done,
-        init_row_0_out => init_row_0_out,
-        init_row_1_out => init_row_1_out,
-        init_row_2_out => init_row_2_out
+        done => init_done
     );
     
     bram0_inst : entity work.simple_dual_one_clock(syn)
@@ -301,21 +343,26 @@ begin
   begin
     
     wait until RSTxRBI = '1';
-
-
+    
+    rState <= INIT_BLOCK;
+    master_done<='1';
     -- fill working memory
-    rState <= INIT_BLOCK; -- this signal is there for the routing of the bram signals
     wait for CLK_PER;
+    GameOfLifeAddress <= std_logic_vector(to_unsigned(0,GameOfLifeAddress'length));
     init_start <= '1';
-    master_done <= '1';
-    GameOfLifeAddress <= std_logic_vector(to_unsigned(1,GameOfLifeAddress'length));
-    wait for CLK_PER;
+--    wait for CLK_PER;
+--    start <= '0';
+    for i in 0 to CHECKERBOARD_SIZE*CHECKERBOARD_SIZE/32-1 loop
+        ReadValue(master_address, master_dataRead, master_start, master_done);
+    end loop;
     init_start <= '0';
-    
-    master_dataRead <= std_logic_vector(to_unsigned(1, master_dataRead'length));
-    
     wait until init_done='1';
     wait until rising_edge(CLKxCI);
+    init_start <= '0';
+
+
+
+
 
     --test save_dram_block
     rState <= SAVE_DRAM_BLOCK; -- this signal is there for the routing of the bram signals
@@ -323,26 +370,12 @@ begin
     wait for CLK_PER;
     work_bram_is <= '1';--we write content from bram0 to dram
     save_dram_block_start <= '1';
-    wait for CLK_per;
-    save_dram_block_start <= '0';
-    wait for CLK_per;
-    wait for CLK_per;
-    wait for CLK_per;
-    wait for CLK_per;
-    master_done <= '0';
-    wait for CLK_per;
-    wait for CLK_per;
-    wait for CLK_per;
-    wait for CLK_per;
-    wait for CLK_per;
-    wait for CLK_per;
-    wait for CLK_per;
-    wait for CLK_per;
-    wait for CLK_per;
-    wait for CLK_per;
-    wait for CLK_per;
-    wait for CLK_per;
-    master_done <= '1';
+    
+    
+    
+    for i in 0 to CHECKERBOARD_SIZE*CHECKERBOARD_SIZE/32-1 loop
+        WriteValue(master_address, master_dataWrite, master_start, master_done);
+    end loop;
     
     
     wait until save_dram_block_done='1';

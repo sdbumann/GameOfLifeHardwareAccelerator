@@ -167,9 +167,10 @@ begin
         when WRITE_DRAM => 
             master_readWrite <= '1'; -- 1 for write
             master_dataWrite <= row_p(CHECKERBOARD_SIZE-1-WORD_LENGTH*to_integer(count_line_p) downto CHECKERBOARD_SIZE-1-WORD_LENGTH*to_integer(count_line_p)-WORD_LENGTH+1);
-            master_start <= '1';
+            --master_start <= '1';
             
             if master_done = '1' then
+                nrState <= WRITE_DRAM_WAIT;
                 count_line_en <= '1';
                 if count_line_p = to_unsigned(NUM_INST-1, count_line_p'length) and count_row_p = to_unsigned(CHECKERBOARD_SIZE-1, count_row_p'length) then
                     nrState <= IDLE;
