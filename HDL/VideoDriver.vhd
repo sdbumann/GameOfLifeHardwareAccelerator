@@ -1,28 +1,6 @@
-----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
--- 
--- Create Date: 05/11/2022 11:57:00 AM
--- Design Name: 
--- Module Name: VideoDriver - rtl
--- Project Name: 
--- Target Devices: 
--- Tool Versions: 
--- Description: 
--- 
--- Dependencies: 
--- 
--- Revision:
--- Revision 0.01 - File Created
--- Additional Comments:
--- 
-----------------------------------------------------------------------------------
-
-
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
-
 
 library work;
 use work.constants.all;
@@ -36,30 +14,27 @@ entity VideoDriver is
     Port ( 
         CLK : in std_logic;
         resetn : in std_logic;
-        --zoomFact : in std_logic_vector(SYS_DATA_LEN-1 downto 0);
         windowTop : in std_logic_vector(SYS_DATA_LEN-1 downto 0); -- with respect to the 1024 x 1024 grid
         windowLeft : in std_logic_vector(SYS_DATA_LEN-1 downto 0); -- with respect to the 1024 x 1024 grid
         
         GoLReady : in std_logic;
         frameBufferAddr : in std_logic_vector(SYS_DATA_LEN-1 downto 0);
         
-        
         frameDone : out std_logic;
         
+        -- master signals
         master_start : out std_logic;
         master_done : in std_logic;
         master_address : out std_logic_vector(C_M00_AXI_ADDR_WIDTH-1 downto 0);
         master_dataWrite : out std_logic_vector(C_M00_AXI_DATA_WIDTH-1 downto 0);
         master_readWrite : out std_logic;
             
-        
         -- Control signals for bram0
         enb0 : out std_logic;
         addrb0 : out std_logic_vector(9 downto 0);
         dob0 : in std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
         
         -- Control signals for bram1
-
         enb1 : out std_logic;
         addrb1 : out std_logic_vector(9 downto 0);
         dob1 : in std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
@@ -162,12 +137,10 @@ begin
                 if GoLReady = '1' then
                     GolAddrN <= windowTopRegulated;
                     stateN <= WAIT_BRAM_READ;
-                    bramReadEnable <= '1';
                 end if;
             when LOAD_LINE => 
                 GolAddrN <= windowTopRegulated + lineCounterP;
                 stateN <= WAIT_BRAM_READ;
-                bramReadEnable <= '1';
             when WAIT_BRAM_READ =>
                 stateN <= SAVE_LINE;
                 bramReadEnable <= '1';
@@ -181,17 +154,15 @@ begin
                 else
                     pixelData <= x"00"&x"FF"&x"00"&x"FF";
                 end if;
-                if writeReady = '1' then
-                    writeStart <= '1';
-                    stateN <= WRITE_PIXEL;   
-                end if;        
+                writeStart <= '1';
+                stateN <= WRITE_PIXEL;            
             when WRITE_PIXEL =>
                 if GoLLineP(to_integer(GoL_DATA_LEN-1 - windowLeftRegulated - colCounterP)) = '0' then 
                     pixelData <= x"00"&x"FF"&x"FF"&x"FF";
                 else
                     pixelData <= x"00"&x"FF"&x"00"&x"FF";
                 end if;
-                --writeStart <= '1';
+                writeStart <= '1';
                 if writeReady = '1' then
                     if  to_integer(colCounterP) = WINDOW_WIDTH - 1 then
                         colCounterN <= (others => '0');
@@ -202,9 +173,7 @@ begin
                             lineCounterN <= lineCounterP + 1;
                             stateN <= LOAD_LINE;
                         end if;
-                    else 
-                        colCounterN <= colCounterP + 1;
-                        stateN <= WRITE_PIXEL_WAIT;
+                    else colCounterN <= colCounterP + 1;
                     end if;
                 end if;
             when OTHERS =>

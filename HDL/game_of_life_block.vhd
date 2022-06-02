@@ -5,8 +5,6 @@ use ieee.numeric_std.all;
 library work;
 use work.constants.all;
 
--- m00_axi_aclk ==> s00_axi_aclk ==> logic clk
-
 entity game_of_life_block is
   port (
     --------------------------------------
@@ -35,7 +33,6 @@ entity game_of_life_block is
     -- other signals 
     start : in std_logic;
     done : out std_logic;
---    init_row_0, init_row_1, init_row_2 : in std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
     work_bram_is : in std_logic;
     
     -- ILA debug signals
@@ -45,6 +42,13 @@ entity game_of_life_block is
     
   );
 end game_of_life_block;
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+library work;
+use work.constants.all;
 
 architecture rtl of game_of_life_block is
   type TState is (IDLE, START_GOL_FULL_ROW_STATE, SAVE_ROWS, EXCHANGE_ROWS, DONE_STATE, READ_INITIAL_ROW_ONE_WAIT, READ_INITIAL_ROW_ONE, READ_INITIAL_ROW_TWO_WAIT, READ_INITIAL_ROW_TWO);
@@ -77,9 +81,6 @@ begin
       if resetn = '0' then
         rState <= IDLE;
         count_row_p <= (others => '0');
---        init_row_0_p <= (others => '0');
---        init_row_1_p <= (others => '0');
---        init_row_2_p <= (others => '0');
         row_0_p <= (others => '0');
         row_1_p <= (others => '0');
         row_2_p <= (others => '0');
@@ -87,9 +88,6 @@ begin
       else
         rState <= nrState;
         count_row_p <= count_row_n;
---        init_row_0_p <= init_row_0_n;
---        init_row_1_p <= init_row_1_n;
---        init_row_2_p <= init_row_2_n;
         row_0_p <= row_0_n;
         row_1_p <= row_1_n;
         row_2_p <= row_2_n;
@@ -102,9 +100,6 @@ begin
   process (all)
   begin
     nrState                 <= rState;
---    init_row_0_n            <= init_row_0_p;
---    init_row_1_n            <= init_row_1_p;
---    init_row_2_n            <= init_row_2_p;
     row_0_n                 <= row_0_p;
     row_1_n                 <= row_1_p;
     row_2_n                 <= row_2_p;
@@ -132,7 +127,11 @@ begin
     start_GOL_full_row <= '0';
         
     case rState is
-        when IDLE =>   
+        when IDLE =>  
+            row_0_n                 <= (others => '0');
+            row_1_n                 <= (others => '0');
+            row_2_n                 <= (others => '0');
+            row_solution_n          <= (others => '0');
             if start='1' then
                 row_0_n <= (others => '0');
                 if work_bram_is = '0' then
@@ -233,10 +232,7 @@ begin
                 end if;
                 nrState <= START_GOL_FULL_ROW_STATE;
             end if;
-            
-            
-            
-            
+
         when DONE_STATE => 
             done <= '1';
             count_row_reset<='1';
@@ -260,109 +256,4 @@ begin
   row_solution_GoL <= row_solution_p;                
 end rtl;
 
---architecture rtl of game_of_life_block is
-
---    type TState is (IDLE, READ_BRAM_WAIT, READ_WRITE_BRAM, INCREMENT);
---    signal stateP, stateN : TState; 
---    signal count_row_p, count_row_n : unsigned(CHECKERBOARD_SIZE-1 downto 0);
---    signal addrP, addrN : unsigned(CHECKERBOARD_SIZE_NUM_BITS -1 downto 0);
-  
---begin
---    process (CLK, resetn)
---    begin
---        if rising_edge(CLK) then 
---          if resetn = '0' then
---            stateP <= IDLE;
---            count_row_p <= (others => '0');
---            addrP <= (others => '0');
-    
---          else
---            stateP <= stateN;
---            count_row_p <= count_row_n;
---            addrP <= addrN;
-    
---          end if;
---        end if;
---    end process;
-    
---    process(all) is
---    begin
---        count_row_n <= count_row_p;
---        addrN <= addrP;
---        stateN            <= stateP;
-    
---    dia0 <= (others => '0');
---    addra0 <= (others => '0');
---    wea0 <= '0';
---    ena0 <= '0';
---    enb0 <= '0';
---    addrb0 <= (others => '0');
-    
---    dia1 <= (others => '0');
---    addra1 <= (others => '0');
---    wea1 <= '0';
---    ena1 <= '0';
---    enb1 <= '0';
---    addrb1 <= (others => '0');
-    
---    done <= '0';
-
---        case stateP is
---            when IDLE =>
---                done <= '1';
---                if start = '1' then
---                    stateN <= READ_BRAM_WAIT;
---                    if work_bram_is = '1' then
---                        enb1 <= '1';
---                        addrb1 <= std_logic_vector(addrP);
---                    else
---                        enb0 <= '1';
---                        addrb0 <= std_logic_vector(addrP);
---                    end if;
---                end if;
---            when READ_BRAM_WAIT =>
---                if work_bram_is = '1' then
---                    enb1 <= '1';
---                    addrb1 <= std_logic_vector(addrP);
---                else
---                    enb0 <= '1';
---                    addrb0 <= std_logic_vector(addrP);
---                end if;
---                stateN <= READ_WRITE_BRAM;
---            when READ_WRITE_BRAM =>
---                if work_bram_is = '1' then
---                    ena0 <= '1';
---                    wea0 <= '1';
---                    addra0 <= std_logic_vector(addrP);
---                    dia0 <= dob1;
-
---                else
---                    ena1 <= '1';
---                    wea1 <= '1';
---                    addra1 <= std_logic_vector(addrP);
---                    dia1 <= dob0;
-
---                end if;
---                addrN <= addrP +1;
---                stateN <= INCREMENT;
---            when INCREMENT =>
---                if addrP = to_unsigned(0,addrP'length) then
---                    stateN <= IDLE;
---                else
---                    stateN <= READ_BRAM_WAIT;
---                    if work_bram_is = '1' then
---                        enb1 <= '1';
---                        addrb1 <= std_logic_vector(addrP);
---                    else
---                        enb0 <= '1';
---                        addrb0 <= std_logic_vector(addrP);
---                    end if;
---                end if;
---            when OTHERS =>
---                stateN <= IDLE;
---        end case;
---    end process;
---    count_row_GoL <= (others => '0');
---    row_solution_GoL <= (others => '0');
---end rtl;
 

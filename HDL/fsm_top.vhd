@@ -368,8 +368,7 @@ init_block_inst : entity work.init_block(rtl)
                 addrb1_save_dram_block when stateP = SAVE_DRAM_BLOCK else
                 addrb1_video_driver_block when stateP = VIDEO_DRIVER_BLOCK else
                 (others=>'0');
-                
-                
+     
     -- routing for bram0
     ena0    <=  ena0_gol_block when stateP = GAME_OF_LIFE_BLOCK else
                 ena0_init_block when stateP = INIT_BLOCK else
@@ -478,43 +477,6 @@ init_block_inst : entity work.init_block(rtl)
                 stateN <= IDLE;
         end case;
     end process;
-    
-    
---    fsm_top: process(all) is
---    begin --IDLE, INIT_BLOCK, GAME_OF_LIFE_BLOCK, VIDEO_DRIVER_BLOCK, DRAM_BLOCK
---        stateN <= stateP;
---        workMemN <= workMemP;
---        initBlockStart <= '0';
---        GoLBlockStart <= '0';
---        VideoDriverStart <= '0';
---        SaveDramStart <= '0';
---        accelDone <= '0';
---        case stateP is
---            when IDLE =>
---                accelDone <= '1';
---                if accelStart = '1' then
---                    stateN <= INIT_BLOCK;
---                    initBlockStart <= '1';
---                end if;
---            when INIT_BLOCK =>
---                if initBlockDone = '1' then
---                    GoLBlockStart <= '1';
---                    stateN <= GAME_OF_LIFE_BLOCK;
---                    workMemN <= '0';
---                end if;
---            when GAME_OF_LIFE_BLOCK =>
---                if GoLBlockDone = '1' then
---                    SaveDramStart <= '1';
---                    stateN <= SAVE_DRAM_BLOCK;
---                end if;
---           when SAVE_DRAM_BLOCK =>
---                if SaveDramDone = '1' then
---                    stateN <= IDLE;
---                end if;
---            when OTHERS =>
---                stateN <= IDLE;
---        end case;
---    end process;
     
     --ILA signals
     fsm_top_state <= "010" when stateP = INIT_BLOCK else
