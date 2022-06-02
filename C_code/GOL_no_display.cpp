@@ -9,20 +9,14 @@ extern "C" {
 #include <libxlnk_cma.h>
 }
 #include "OverlayControl.h"
-//#include "types.hpp"
 #include "utils.hpp"
 
 #define FRAME_BUFFER 0x16B00000
-
 
 #define FRAME_BUFFER_WIDTH 640
 #define FRAME_BUFFER_HEIGHT 480
 #define FRAME_BUFFER_PIXELS (FRAME_BUFFER_WIDTH*FRAME_BUFFER_HEIGHT)
 #define FRAME_BUFFER_SIZE (FRAME_BUFFER_WIDTH*FRAME_BUFFER_HEIGHT*4)
-
-
-
-//uint32_t backBuffer[FRAME_BUFFER_PIXELS];
 
 const uint32_t CHECKERBOARD_LENGTH (1024*1024/32);
 const uint32_t MEM_IS_CACHEABLE = 0;
@@ -36,16 +30,13 @@ const uint32_t WINDOW_LEFT_MAX = 1024-FRAME_BUFFER_WIDTH;
 const uint32_t WINDOW_TOP_MAX = 1024-FRAME_BUFFER_HEIGHT;
 const uint32_t WINDOW_INCREMENT = 100;
 
-
-
-
 // Register offsets.
 enum {START = 0, STOP = 1, DONE = 2, GAME_OF_LIFE_ADDRESS = 3, FRAME_BUFFER_ADDRESS = 4, WINDOW_TOP = 5, WINDOW_LEFT = 6};
 
 
 ///////////////////////////////////////////////////////////////////////////////
 int main(){
-   uint32_t * fb = (uint32_t*)cma_mmap(FRAME_BUFFER, FRAME_BUFFER_SIZE);
+  uint32_t * fb = (uint32_t*)cma_mmap(FRAME_BUFFER, FRAME_BUFFER_SIZE);
 
   volatile uint32_t * accelRegs = NULL;
   uint32_t * gol_checkerboard, * phy_gol_checkerboard;
@@ -95,16 +86,6 @@ int main(){
   *(accelRegs + WINDOW_LEFT) = window_left_current;
   *(accelRegs + START) = 0;
   *(accelRegs + STOP) = 1; 
-
-  printf("DONE IS %d\r\n", *(accelRegs + DONE));
-
-  for (uint32_t ii = 100; ii<150; ++ii){
-      //uint32_t ii = 20;
-        //printf("framebuffer value at position %d is: 0x%08X \r\n",fb[ii]);
-        printf("checkerboard value at position %d is: 0x%08X \r\n", ii, gol_checkerboard[ii]);
-      }
-
-
 
   struct timespec start, end;
   
@@ -199,32 +180,17 @@ int main(){
       while ((*(accelRegs + DONE) == 0)){
         usleep(5);
       }
-      /* printf("start waiting \r\n");
-      usleep(500000);
-      printf("stop waiting \r\n"); */
 
       clock_gettime(CLOCK_MONOTONIC_RAW, &end);
       unsigned long long elapsed = CalcTimeDiff(end, start);
       printf("Iteration done\r\n");
       printf("Iteration took %llu ns\r\n", elapsed);
-
-      for (uint32_t ii = 100; ii<150; ++ii){
-      //uint32_t ii = 20;
-        //printf("framebuffer value is: 0x%08X \r\n",fb[ii]);
-        printf("checkerboard value at position %d is: 0x%08X \r\n", ii, gol_checkerboard[ii]);
-      }
-
     }
 
     if (ch == 'p'){
       printf("----------------------------------------------\r\n");
       printf("'p' press detected\r\n");
       printf("----------------------------------------------\r\n");
-      for (uint32_t ii = 20; ii<40; ++ii){
-      //uint32_t ii = 20;
-        printf("framebuffer value is: 0x%08X \r\n",fb[ii]);
-        printf("checkerboard value is: 0x%08X \r\n", gol_checkerboard[ii]);
-      }
     }
 
   } while ( ch != 'q');

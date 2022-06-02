@@ -9,7 +9,6 @@ extern "C" {
 #include <libxlnk_cma.h>
 }
 #include "OverlayControl.h"
-//#include "types.hpp"
 #include "utils.hpp"
 
 #define FRAME_BUFFER 0x16B00000
@@ -21,8 +20,6 @@ extern "C" {
 #define FRAME_BUFFER_SIZE (FRAME_BUFFER_WIDTH*FRAME_BUFFER_HEIGHT*4)
 #define VSYNC_BASEADDR  0x43C80000
 enum {VSYNC_ENABLE = 1, VSYNC_ENABLE_INTERRUPT = 2, VSYNC_POLL = 4};
-
-//uint32_t backBuffer[FRAME_BUFFER_PIXELS];
 
 const uint32_t CHECKERBOARD_WIDTH (1024);
 const uint32_t CHECKERBOARD_HEIGHT (1024);
@@ -90,8 +87,7 @@ int main(){
 
   // fill game of life checkerboard randomly
   for (uint32_t ii = 0; ii < CHECKERBOARD_LENGTH; ++ ii)
-    gol_checkerboard[ii] = ii;//rand();
-    //gol_checkerboard[ii] = 0xFFFFFFFF;
+    gol_checkerboard[ii] = rand();
 
   // Fill the screen with solid colors to verify proper functioning.
   FillColor(fb, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT, 0x000000FF); // Red
@@ -107,6 +103,7 @@ int main(){
         "Press 'n' to start the next iteration.\n"
         "The 'e' key can be used to kill all cells that are alive on the current screen\n"
         "Use 'r' to kill al living cells and to revive dead ones.\n"
+        "The 'x' key starts an automatic mode that can be terminated by pressing 'x' again.\n"
         "Press 'q' to exit the simulation.\n");
 
 
@@ -118,24 +115,11 @@ int main(){
   *(accelRegs + FRAME_BUFFER_ADDRESS) = (uint32_t)FRAME_BUFFER;
   *(accelRegs + WINDOW_TOP) = window_top_current;
   *(accelRegs + WINDOW_LEFT) = window_left_current;
-
-
-  *(accelRegs + START) = 1;
-  *(accelRegs + STOP) = 0;
-  int ch2;
-  do {
-    ch2 = getch();
-    for (uint32_t ii = 0; ii<50; ++ii){
-    printf("checkerboard value is: 0x%08X \r\n", gol_checkerboard[ii]);
-  }
-    
-  }while (ch2 != 'q');
-
   *(accelRegs + START) = 0;
   *(accelRegs + STOP) = 1;
 
-  for (uint32_t ii = 0; ii<50; ++ii){
-    printf("checkerboard value at position %d is: 0x%08X \r\n", ii, gol_checkerboard[ii]);
+  while (*(accelRegs + DONE) == 0){
+    usleep(5);
   }
 
   struct timespec start, end;
@@ -235,6 +219,27 @@ int main(){
       printf("Kill all cells that are alive on the current screen.\r\n");
     }
 
+    if (ch == 'x'){//automatic mode
+      printf("----------------------------------------------\r\n");
+      printf("'x' press detected\r\n");
+      printf("----------------------------------------------\r\n");
+      printf("Automatic mode started. Press 'x' again to stop the automatic mode.\r\n");
+      
+      *(accelRegs + START) = 1;
+      *(accelRegs + STOP) = 0;
+      int ch2;
+      do {
+        ch2 = getch();
+      }while (ch2 != 'x');
+
+      *(accelRegs + START) = 0;
+      *(accelRegs + STOP) = 1;
+      while (*(accelRegs + DONE) == 0){
+          usleep(5);
+      }
+      
+    }
+
     if (ch == 'n'){//next iteration please
       printf("----------------------------------------------\r\n");
       printf("'n' press detected\r\n");
@@ -252,23 +257,12 @@ int main(){
       unsigned long long elapsed = CalcTimeDiff(end, start);
       printf("Iteration done\r\n");
       printf("Iteration took %llu ns\r\n", elapsed);
-
-      for (uint32_t ii = 0; ii<50; ++ii){
-      //uint32_t ii = 20;
-        //printf("framebuffer value is: 0x%08X \r\n",fb[ii]);
-        printf("checkerboard value at %d is: 0x%08X \r\n", ii, gol_checkerboard[ii]);
-      }
     }
 
     if (ch == 'p'){
       printf("----------------------------------------------\r\n");
       printf("'p' press detected\r\n");
       printf("----------------------------------------------\r\n");
-      for (uint32_t ii = 0; ii<50; ++ii){
-      //uint32_t ii = 20;
-        //printf("framebuffer value is: 0x%08X \r\n",fb[ii]);
-        printf("checkerboard value is: 0x%08X \r\n", gol_checkerboard[ii]);
-      }
     }
 
   } while ( ch != 'q');
