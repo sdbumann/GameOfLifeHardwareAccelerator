@@ -81,6 +81,20 @@ architecture tb of VideoDriver_tb is
         signal dia1 : STD_LOGIC_VECTOR(1023 DOWNTO 0);
         signal enb1 : std_logic;
         signal addrb1 : std_logic_vector(9 downto 0);
+        
+        COMPONENT blk_mem_gen_0
+            PORT (
+            clka : IN STD_LOGIC;
+            ena : IN STD_LOGIC;
+            wea : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+            addra : IN STD_LOGIC_VECTOR(9 DOWNTO 0);
+            dina : IN STD_LOGIC_VECTOR(1023 DOWNTO 0);
+            clkb : IN STD_LOGIC;
+            enb : IN STD_LOGIC;
+            addrb : IN STD_LOGIC_VECTOR(9 DOWNTO 0);
+            doutb : OUT STD_LOGIC_VECTOR(1023 DOWNTO 0)
+            );
+        END COMPONENT;
 
         procedure WriteValue(
           --signal master_address : in std_logic_vector(32-1 downto 0);
@@ -106,20 +120,7 @@ architecture tb of VideoDriver_tb is
         
         
         
-        
-         COMPONENT blk_mem_gen_0
-            PORT (
-            clka : IN STD_LOGIC;
-            ena : IN STD_LOGIC;
-            wea : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-            addra : IN STD_LOGIC_VECTOR(9 DOWNTO 0);
-            dina : IN STD_LOGIC_VECTOR(1023 DOWNTO 0);
-            clkb : IN STD_LOGIC;
-            enb : IN STD_LOGIC;
-            addrb : IN STD_LOGIC_VECTOR(9 DOWNTO 0);
-            doutb : OUT STD_LOGIC_VECTOR(1023 DOWNTO 0)
-            );
-        END COMPONENT;
+      
 
 
 
