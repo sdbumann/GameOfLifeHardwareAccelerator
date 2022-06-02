@@ -71,7 +71,7 @@ architecture rtl of save_dram_block is
   signal count_row_p, count_row_n : unsigned(CHECKERBOARD_SIZE_NUM_BITS downto 0);
   signal count_row_en, count_row_reset, count_row_done : std_logic;
   signal count_line_p, count_line_n : unsigned(NUM_INST_NUM_BITS-1 downto 0);
-  signal count_line_en, count_line_reset, count_line_done    : std_logic;
+  signal count_line_en, count_line_done    : std_logic;
 begin
   
   master_address <= std_logic_vector(unsigned(GameOfLifeAddress) + WORD_LENGTH/8*count_line_p + count_row_p * CHECKERBOARD_SIZE/8);  
@@ -98,7 +98,6 @@ begin
     nrState                 <= rState;
     row_n                 <= row_p;
     
-    count_line_reset<='0';
     count_row_reset<='0';
     count_line_en <= '0';
     count_row_en <= '0';
@@ -125,9 +124,10 @@ begin
 
     case rState is
         when IDLE => 
+            row_n <= (others => '0');
             done <= '1';
-            count_row_reset <= '1';
-            count_line_reset <= '1';
+            count_row_n <= (others => '0');
+            count_line_n <= (others => '0');
             if start = '1' then 
                 nrState <= READ_BRAM_WAIT; 
           

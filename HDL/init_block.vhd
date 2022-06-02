@@ -70,17 +70,11 @@ begin
         rState <= IDLE;
         count_row_p <= (others => '0');
         count_line_p <= (others => '0');
---        init_row_0_p <= (others => '0');
---        init_row_1_p <= (others => '0');
---        init_row_2_p <= (others => '0');
         row_temp_p <= (others => '0');
       else
         rState <= nrState;
         count_row_p <= count_row_n;
         count_line_p <= count_line_n;
---        init_row_0_p <= init_row_0_n;
---        init_row_1_p <= init_row_1_n;
---        init_row_2_p <= init_row_2_n;
         row_temp_p <= row_temp_n;
       end if;
     end if;
@@ -90,9 +84,6 @@ begin
   process (all)
   begin
     nrState                 <= rState;
---    init_row_0_n            <= init_row_0_p;
---    init_row_1_n            <= init_row_1_p;
---    init_row_2_n            <= init_row_2_p;
     row_temp_n              <= row_temp_p;
     
     count_line_reset<='0';
@@ -117,10 +108,9 @@ begin
 
     case rState is
         when IDLE =>
---            count_line_reset<='1';
---            count_row_reset<='1';
             count_line_n <= (others => '0');
             count_row_n <= (others => '0');
+            row_temp_n <= (others => '0');
             done <= '1';
              
             if start='1' then
