@@ -140,10 +140,6 @@ begin
 
 -- Memory reader/writer (master)
   init_block_inst : entity work.init_block(rtl)
---    generic map ( 
---        C_M00_AXI_ADDR_WIDTH => 32,
---        C_M00_AXI_DATA_WIDTH => 32,
---    )
     port map (
         CLK => CLKxCI,
         resetn => RSTxRBI,
