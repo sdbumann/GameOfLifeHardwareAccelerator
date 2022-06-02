@@ -252,39 +252,34 @@ begin
   p_stim: process
 
   begin
-    
     wait until RSTxRBI = '1';
+    for i in 0 to 1023 loop
+        ena1 <= '1';
+        wea1 <= "1";
+        addra1 <= std_logic_vector(to_unsigned(i, addra1'length));
+        dia1 <= std_logic_vector(to_unsigned(i, addra1'length));
+    end loop;
+    
+
     master_done<='1';
     wait for CLK_PER;
     wait for CLK_PER;
     wait for CLK_PER;
     wait for CLK_PER;
 
-
---bram1_inst : blk_mem_gen_0
---    PORT MAP (
---        clka => CLKxCI,
---        ena => ena1,
---        wea => wea1,
---        addra => addra1,
---        dina => dia1,
---        clkb => CLKxCI,
---        enb => enb1,
---        addrb => addrb1,
---        doutb => dob1
---    );
+    
 
 
     -- fill working memory
     wait for CLK_PER;
     GoLAddr <= std_logic_vector(to_unsigned(0,GoLAddr'length));
-    init_start <= '1';
+    --init_start <= '1';
 --    wait for CLK_PER;
 --    init_start <= '0';
     for i in 0 to CHECKERBOARD_SIZE*CHECKERBOARD_SIZE/32-1 loop
         WriteValue(master_address, master_dataRead, master_start, master_done);
     end loop;
-    wait until init_done='1';
+    --wait until init_done='1';
     wait until rising_edge(CLKxCI);
     
     
