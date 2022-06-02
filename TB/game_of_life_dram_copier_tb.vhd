@@ -71,6 +71,42 @@ architecture tb of game_of_life_dram_copier_tb is
         signal addrb1 : std_logic_vector(9 downto 0);
         signal dob1 : std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
         
+        signal ena0_gol_block : std_logic;
+        signal wea0_gol_block : std_logic_vector(0 downto 0);
+        signal addra0_gol_block : std_logic_vector(9 downto 0);
+        signal dia0_gol_block : std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
+        signal enb0_gol_block : std_logic; 
+        signal addrb0_gol_block : std_logic_vector(9 downto 0);
+        signal dob0_gol_block : std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
+        
+        
+        -- Control signals for bram1 for game_of_life_block
+        signal ena1_gol_block : std_logic;
+        signal wea1_gol_block : std_logic_vector(0 downto 0);
+        signal addra1_gol_block : std_logic_vector(9 downto 0);
+        signal dia1_gol_block : std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
+        signal enb1_gol_block : std_logic; 
+        signal addrb1_gol_block : std_logic_vector(9 downto 0);
+        signal dob1_gol_block : std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
+        
+        signal ena0_bram_block : std_logic;
+        signal wea0_bram_block : std_logic_vector(0 downto 0);
+        signal addra0_bram_block : std_logic_vector(9 downto 0);
+        signal dia0_bram_block : std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
+        signal enb0_bram_block : std_logic; 
+        signal addrb0_bram_block : std_logic_vector(9 downto 0);
+        signal dob0_bram_block : std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
+        
+        
+        -- Control signals for bram1 for game_of_life_block
+        signal ena1_bram_block : std_logic;
+        signal wea1_bram_block : std_logic_vector(0 downto 0);
+        signal addra1_bram_block : std_logic_vector(9 downto 0);
+        signal dia1_bram_block : std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
+        signal enb1_bram_block : std_logic; 
+        signal addrb1_bram_block : std_logic_vector(9 downto 0);
+        signal dob1_bram_block : std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
+        
 
         
         -- other signals 
@@ -118,6 +154,9 @@ architecture tb of game_of_life_dram_copier_tb is
 --            master_done <= '0';
             
         end WriteValue;
+        
+        type TState is (GAME_OF_LIFE_BLOCK, BRAM_BLOCK);
+        signal state : TSTATE;
 --=============================================================================
 -- ARCHITECTURE BEGIN
 --=============================================================================
@@ -155,7 +194,7 @@ begin
     game_of_life_block_inst: entity work.game_of_life_block(rtl)
     port map(CLK => CLKxCI, resetn => RSTxRBI, 
     ena0 => ena0_gol_block, 
-    wea0 => wea0_gol_block, 
+    wea0 => wea0_gol_block(0), 
     addra0 => addra0_gol_block,
     dia0  => dia0_gol_block,
     enb0  => enb0_gol_block,
@@ -164,7 +203,7 @@ begin
     
     -- Control signals for bram1
     ena1  => ena1_gol_block,
-    wea1  => wea1_gol_block,
+    wea1  => wea1_gol_block(0),
     addra1  => addra1_gol_block,
     dia1  => dia1_gol_block,
     enb1  => enb1_gol_block,
@@ -177,7 +216,38 @@ begin
     work_bram_is => work_bram_is
     );
 
+    ena0 <= ena0_gol_block when state = GAME_OF_LIFE_BLOCK else
+            ena0_bram_block;
+    wea0 <= wea0_gol_block when state = GAME_OF_LIFE_BLOCK else
+            wea0_bram_block;
+    addra0 <= addra0_gol_block when state = GAME_OF_LIFE_BLOCK else
+            addra0_bram_block;
+            
+    dia0 <= dia0_gol_block when state = GAME_OF_LIFE_BLOCK else
+            dia0_bram_block;
+    enb0 <= enb0_gol_block when state = GAME_OF_LIFE_BLOCK else
+            enb0_bram_block;        
+    addrb0 <= addrb0_gol_block when state = GAME_OF_LIFE_BLOCK else
+            addrb0_bram_block;
+    dob0_gol_block <= dob0;
+    dob0_bram_block <= dob0;
+--CLK : in std_logic;
 
+    ena1 <= ena1_gol_block when state = GAME_OF_LIFE_BLOCK else
+            ena1_bram_block;
+    wea1 <= wea1_gol_block when state = GAME_OF_LIFE_BLOCK else
+            wea1_bram_block;
+    addra1 <= addra1_gol_block when state = GAME_OF_LIFE_BLOCK else
+            addra1_bram_block;
+            
+    dia1 <= dia1_gol_block when state = GAME_OF_LIFE_BLOCK else
+            dia1_bram_block;
+    enb1 <= enb1_gol_block when state = GAME_OF_LIFE_BLOCK else
+            enb1_bram_block;        
+    addrb1 <= addrb1_gol_block when state = GAME_OF_LIFE_BLOCK else
+            addrb1_bram_block;
+    dob1_gol_block <= dob1;
+    dob1_bram_block <= dob1;
 
 
 --=============================================================================
@@ -216,9 +286,35 @@ begin
   begin
     
     wait until RSTxRBI = '1';
+    state <= BRAM_BLOCK;
+    work_bram_is <= '0';
+    for i in 0 to 1023 loop
+        ena0_bram_block <= '1';
+        wea0_bram_block <= "1";
+        addra0_bram_block <= std_logic_vector(to_unsigned(i, addra0'length));
+        dia0_bram_block <= std_logic_vector(to_unsigned(i, dia0'length));
+        wait for CLK_PER;
+    end loop;
+    
+    state <= GAME_OF_LIFE_BLOCK;
+    
+    GOL_block_start <= '1';
+    wait for 2*CLK_PER;
+    GOL_block_start <= '0';
+    
 
     
     wait until GOL_block_done='1';
+    
+    state <= BRAM_BLOCK;
+    
+    for i in 0 to 1023 loop
+        enb1_bram_block <= '1';
+        addrb1_bram_block <= std_logic_vector(to_unsigned(i, addra1'length));
+        wait for 2*CLK_PER;
+    end loop;
+    
+    wait until dob1 = std_logic_vector(to_unsigned(1023, dob1'length));
     wait until rising_edge(CLKxCI);
     stop(0);
 

@@ -289,6 +289,24 @@ begin
     begin
         count_row_n <= count_row_p;
         addrN <= addrP;
+        stateN            <= stateP;
+    
+    dia0 <= (others => '0');
+    addra0 <= (others => '0');
+    wea0 <= '0';
+    ena0 <= '0';
+    enb0 <= '0';
+    addrb0 <= (others => '0');
+    
+    dia1 <= (others => '0');
+    addra1 <= (others => '0');
+    wea1 <= '0';
+    ena1 <= '0';
+    enb1 <= '0';
+    addrb1 <= (others => '0');
+    
+    done <= '0';
+
         case stateP is
             when IDLE =>
                 done <= '1';
@@ -344,6 +362,7 @@ begin
                 stateN <= IDLE;
         end case;
     end process;
-    
+    count_row_GoL <= (others => '0');
+    row_solution_GoL <= (others => '0');
 end rtl;
 
