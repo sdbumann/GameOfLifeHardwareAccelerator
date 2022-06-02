@@ -84,9 +84,6 @@ begin
       if resetn = '0' then
         rState <= IDLE;
         count_row_p <= (others => '0');
---        init_row_0_p <= (others => '0');
---        init_row_1_p <= (others => '0');
---        init_row_2_p <= (others => '0');
         row_0_p <= (others => '0');
         row_1_p <= (others => '0');
         row_2_p <= (others => '0');
@@ -94,9 +91,6 @@ begin
       else
         rState <= nrState;
         count_row_p <= count_row_n;
---        init_row_0_p <= init_row_0_n;
---        init_row_1_p <= init_row_1_n;
---        init_row_2_p <= init_row_2_n;
         row_0_p <= row_0_n;
         row_1_p <= row_1_n;
         row_2_p <= row_2_n;
@@ -109,9 +103,6 @@ begin
   process (all)
   begin
     nrState                 <= rState;
---    init_row_0_n            <= init_row_0_p;
---    init_row_1_n            <= init_row_1_p;
---    init_row_2_n            <= init_row_2_p;
     row_0_n                 <= row_0_p;
     row_1_n                 <= row_1_p;
     row_2_n                 <= row_2_p;
@@ -139,7 +130,11 @@ begin
     start_GOL_full_row <= '0';
         
     case rState is
-        when IDLE =>   
+        when IDLE =>  
+            row_0_n                 <= (others => '0');
+            row_1_n                 <= (others => '0');
+            row_2_n                 <= (others => '0');
+            row_solution_n          <= (others => '0');
             if start='1' then
                 row_0_n <= (others => '0');
                 if work_bram_is = '0' then
