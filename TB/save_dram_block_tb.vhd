@@ -344,6 +344,7 @@ begin
     
     wait until RSTxRBI = '1';
     
+    -- initialize bram
     rState <= INIT_BLOCK;
     master_done<='1';
     -- fill working memory

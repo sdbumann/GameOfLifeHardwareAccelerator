@@ -111,27 +111,25 @@ architecture tb of game_of_life_block_tb is
         
         signal tb_master_data_ok : std_logic;
         
-        procedure WriteValue(
+        procedure ReadValue(
           signal master_address : in std_logic_vector(32-1 downto 0);
           signal master_data : out std_logic_vector(32-1 downto 0);
-          signal master_start : std_logic;
+          signal master_start : in std_logic;
           signal master_done : out std_logic
           ) is
         begin
             wait until master_start = '1';
             wait for CLK_PER;
             master_done <= '0';
-            master_data <= master_address;
+            --master_data <= master_address;
+            master_data <= std_logic_vector(to_unsigned(1, master_data'length));
             wait for CLK_PER;
             wait for CLK_PER;
             wait for CLK_PER;
             wait for CLK_PER;
             wait for CLK_PER;
             master_done <= '1';
---            wait for CLK_PER;
---            master_done <= '0';
-            
-        end WriteValue;
+        end ReadValue;
 --=============================================================================
 -- ARCHITECTURE BEGIN
 --=============================================================================
@@ -285,18 +283,20 @@ begin
     wait for CLK_PER;
 
 
+    -- initialize bram
+    rState <= INIT_BLOCK;
+    master_done<='1';
     -- fill working memory
-    rState <= INIT_BLOCK; -- this signal is there for the routing of the bram signals
     wait for CLK_PER;
     GameOfLifeAddress <= std_logic_vector(to_unsigned(0,GameOfLifeAddress'length));
     init_start <= '1';
---    wait for CLK_PER;
---    init_start <= '0';
     for i in 0 to CHECKERBOARD_SIZE*CHECKERBOARD_SIZE/32-1 loop
-        WriteValue(master_address, master_dataRead, master_start, master_done);
+        ReadValue(master_address, master_dataRead, master_start, master_done);
     end loop;
+    init_start <= '0';
     wait until init_done='1';
     wait until rising_edge(CLKxCI);
+    init_start <= '0';
 
     --test game_of_life_block
     rState <= GAME_OF_LIFE_BLOCK; -- this signal is there for the routing of the bram signals
