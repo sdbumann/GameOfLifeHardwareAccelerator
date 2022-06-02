@@ -1,24 +1,3 @@
-----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
--- 
--- Create Date: 05/26/2022 11:23:38 AM
--- Design Name: 
--- Module Name: fsm_top - rtl
--- Project Name: 
--- Target Devices: 
--- Tool Versions: 
--- Description: 
--- 
--- Dependencies: 
--- 
--- Revision:
--- Revision 0.01 - File Created
--- Additional Comments:
--- 
-----------------------------------------------------------------------------------
-
-
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
@@ -37,7 +16,7 @@ entity fsm_top is
         clk, resetn : in std_logic;
        
 -- AXI4 signals
-    -- master
+        -- master
         master_start : out std_logic;
         master_done : in std_logic; -- assigned to writeReady in video driver 
         master_readWrite : out std_logic;
@@ -45,7 +24,7 @@ entity fsm_top is
         master_dataRead : in std_logic_Vector(C_M00_AXI_DATA_WIDTH-1 downto 0);
         master_dataWrite : out std_logic_Vector(C_M00_AXI_DATA_WIDTH-1 downto 0);
         
-    -- slave
+        -- slave
         -- fsm_top signals        
         accelStart : in std_logic;
         accelDone : out std_logic;
@@ -57,7 +36,7 @@ entity fsm_top is
         windowLeft : in std_logic_vector(SYS_DATA_LEN-1 downto 0); -- with respect to the 1024 x 1024 grid
         frameBufferAddr : in std_logic_vector(SYS_DATA_LEN-1 downto 0);
         
-    -- ILA debug signals
+        -- ILA debug signals
         fsm_top_state : out std_logic_vector(2 downto 0);
         
         count_line_save_dram : out unsigned(NUM_INST_NUM_BITS-1 downto 0);
@@ -68,7 +47,6 @@ entity fsm_top is
         
         count_line_init : out unsigned(NUM_INST_NUM_BITS-1 downto 0);
         count_row_init : out unsigned(CHECKERBOARD_SIZE_NUM_BITS downto 0);
---        init_row_0_init, init_row_1_init, init_row_2_init : out std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
         
         bram_ena0 : out std_logic;
         bram_wea0 : out std_logic_vector(0 downto 0);
@@ -88,8 +66,6 @@ entity fsm_top is
         
         count_row_GoL : out unsigned(CHECKERBOARD_SIZE_NUM_BITS downto 0);
         row_solution_GoL : out std_logic_vector(CHECKERBOARD_SIZE-1 downto 0)
-        
-        
     );
 end fsm_top;
 
@@ -119,9 +95,6 @@ architecture rtl of fsm_top is
     signal addrb1 : std_logic_vector(9 downto 0);
     signal dob1 : std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
     
--- init_block & game_of_life_block signals
---    signal init_row_0, init_row_1, init_row_2 : std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
-    
 -- game_of_life_block, video driver & save_dram_block signals
     signal work_bram_is : std_logic;
 
@@ -139,8 +112,6 @@ architecture rtl of fsm_top is
     signal addra0_init_block : std_logic_vector(9 downto 0);
     signal dia0_init_block : std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
 
-    
-    
 --  game_of_life_block Signals ----------------------
     signal GoLBlockStart, GoLBlockDone : std_logic;
 
@@ -160,28 +131,21 @@ architecture rtl of fsm_top is
     signal enb1_gol_block : std_logic; 
     signal addrb1_gol_block : std_logic_vector(9 downto 0);
     
-
- 
 -- VideoDriver Signals ----------------------------
     signal VideoDriverStart, VideoDriverDone : std_logic;
-    
 
-    
     signal master_start_video_driver_block :  std_logic;
     signal master_address_video_driver_block :  std_logic_vector(C_M00_AXI_ADDR_WIDTH-1 downto 0);
     signal master_dataWrite_video_driver_block :  std_logic_vector(C_M00_AXI_DATA_WIDTH-1 downto 0);
     signal master_readWrite_video_driver_block :  std_logic;
 
-    
     signal enb0_video_driver_block : std_logic;
     signal addrb0_video_driver_block : std_logic_vector(9 downto 0);
     
     -- Control signals for bram1
-
     signal enb1_video_driver_block : std_logic;
     signal addrb1_video_driver_block : std_logic_vector(9 downto 0);
 
-   
 -- save_dram_block signals
     signal SaveDramStart, SaveDramDone : std_logic;
     -- master signals
@@ -245,9 +209,6 @@ init_block_inst : entity work.init_block(rtl)
         GameOfLifeAddress => GameOfLifeAddress,
         start => initBlockStart,
         done => initBlockDone,
---        init_row_0_out => init_row_0,
---        init_row_1_out => init_row_1,
---        init_row_2_out => init_row_2,
         
         count_line_init => count_line_init,
         count_row_init => count_row_init
@@ -302,9 +263,6 @@ init_block_inst : entity work.init_block(rtl)
     -- other signals 
     start  => GoLBlockStart,
     done  => GoLBlockDone,
---    init_row_0 => init_row_0, 
---    init_row_1 => init_row_1,
---    init_row_2 => init_row_2,
     work_bram_is => work_bram_is,
     count_row_GoL => count_row_GoL,
     row_solution_GoL => row_solution_GoL
@@ -321,6 +279,7 @@ init_block_inst : entity work.init_block(rtl)
     GoLReady =>  VideoDriverStart,
     frameBufferAddr => frameBufferAddr,
     
+    -- master signals
     master_start => master_start_video_driver_block,
     master_done => master_done,
     master_address => master_address_video_driver_block,
@@ -329,11 +288,12 @@ init_block_inst : entity work.init_block(rtl)
     
     frameDone => VideoDriverDone,
     
+    -- bram0 signals
     enb0 => enb0_video_driver_block,
     addrb0 => addrb0_video_driver_block,
     dob0 => dob0,
 
-
+    -- bram1 signals
     enb1 => enb1_video_driver_block,
     addrb1 => addrb1_video_driver_block,
     dob1 => dob1,
@@ -408,8 +368,7 @@ init_block_inst : entity work.init_block(rtl)
                 addrb1_save_dram_block when stateP = SAVE_DRAM_BLOCK else
                 addrb1_video_driver_block when stateP = VIDEO_DRIVER_BLOCK else
                 (others=>'0');
-                
-                
+     
     -- routing for bram0
     ena0    <=  ena0_gol_block when stateP = GAME_OF_LIFE_BLOCK else
                 ena0_init_block when stateP = INIT_BLOCK else
@@ -471,7 +430,7 @@ init_block_inst : entity work.init_block(rtl)
     
 -- FSM_TOP
     fsm_top: process(all) is
-    begin --IDLE, INIT_BLOCK, GAME_OF_LIFE_BLOCK, VIDEO_DRIVER_BLOCK, DRAM_BLOCK
+    begin
         stateN <= stateP;
         workMemN <= workMemP;
         initBlockStart <= '0';
@@ -519,43 +478,6 @@ init_block_inst : entity work.init_block(rtl)
         end case;
     end process;
     
-    
---    fsm_top: process(all) is
---    begin --IDLE, INIT_BLOCK, GAME_OF_LIFE_BLOCK, VIDEO_DRIVER_BLOCK, DRAM_BLOCK
---        stateN <= stateP;
---        workMemN <= workMemP;
---        initBlockStart <= '0';
---        GoLBlockStart <= '0';
---        VideoDriverStart <= '0';
---        SaveDramStart <= '0';
---        accelDone <= '0';
---        case stateP is
---            when IDLE =>
---                accelDone <= '1';
---                if accelStart = '1' then
---                    stateN <= INIT_BLOCK;
---                    initBlockStart <= '1';
---                end if;
---            when INIT_BLOCK =>
---                if initBlockDone = '1' then
---                    GoLBlockStart <= '1';
---                    stateN <= GAME_OF_LIFE_BLOCK;
---                    workMemN <= '0';
---                end if;
---            when GAME_OF_LIFE_BLOCK =>
---                if GoLBlockDone = '1' then
---                    SaveDramStart <= '1';
---                    stateN <= SAVE_DRAM_BLOCK;
---                end if;
---           when SAVE_DRAM_BLOCK =>
---                if SaveDramDone = '1' then
---                    stateN <= IDLE;
---                end if;
---            when OTHERS =>
---                stateN <= IDLE;
---        end case;
---    end process;
-    
     --ILA signals
     fsm_top_state <= "010" when stateP = INIT_BLOCK else
                      "011" when stateP = GAME_OF_LIFE_BLOCK else
@@ -578,7 +500,4 @@ init_block_inst : entity work.init_block(rtl)
     bram_enb1 <= enb1;
     bram_addrb1 <= addrb1;
     bram_dob1   <= dob1;
---    init_row_0_init <= init_row_0;
---    init_row_1_init <= init_row_1;
---    init_row_2_init <= init_row_2;
 end rtl;

@@ -103,11 +103,7 @@ begin
             
         when COUNT_INCREMENT =>
             count_en<='1';
---            if count_done='1' then 
---                nrState <= DONE;
---            else
             nrState <= GAME_OF_LIFE;
---            end if;
         
 
         when DONE =>

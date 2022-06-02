@@ -78,10 +78,7 @@ architecture tb of init_block_tb is
             wait until master_start = '1';
             wait for CLK_PER;
             master_done <= '0';
-            master_data <= std_logic_vector(shift_right(unsigned(master_address),2));
-            wait for CLK_PER;
-            wait for CLK_PER;
-            wait for CLK_PER;
+            master_data <= master_address;
             wait for CLK_PER;
             wait for CLK_PER;
             master_done <= '1';
