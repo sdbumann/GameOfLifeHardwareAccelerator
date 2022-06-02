@@ -100,6 +100,7 @@ begin
     
     count_row_reset<='0';
     count_line_en <= '0';
+    count_line_reset <= '0';
     count_row_en <= '0';
     
     dia0 <= (others => '0');
