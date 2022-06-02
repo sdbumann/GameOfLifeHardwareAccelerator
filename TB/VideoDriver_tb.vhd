@@ -35,19 +35,7 @@ architecture tb of VideoDriver_tb is
         constant CLK_PER : time    := 8 ns;   -- 125 MHz clk freq
         constant CLK_LIM : integer := 2**10;  -- Stops simulation from running forever if circuit is not correct
         --constant period: time := 20 ns;
-        
-        constant SYS_DATA_LEN : natural := 32;
-        constant SYS_ADDR_LEN : natural := 32;
-        constant GoL_DATA_LEN : natural := 8; --1024
-        constant GoL_ADDR_LEN : natural := 3; --10
-        
-        constant SCREEN_WIDTH : natural := 4; --change!!!! 320
-        constant SCREEN_HEIGHT : natural := 3; --CHANGE!!! 240
-        
-        constant WINDOW_DIVISION_FACTOR : natural := 1;
-        
-        constant WINDOW_WIDTH : natural := SCREEN_WIDTH/WINDOW_DIVISION_FACTOR;
-        constant WINDOW_HEIGHT : natural := SCREEN_HEIGHT/WINDOW_DIVISION_FACTOR;
+
         
         
         -- Parameters of the AXI master bus interface:
@@ -68,7 +56,6 @@ architecture tb of VideoDriver_tb is
         signal writeStart :  std_logic;
         signal pixelData :  std_logic_vector(SYS_DATA_LEN-1 downto 0);
         signal pixelAddr :  std_logic_vector(SYS_ADDR_LEN-1 downto 0);
-        signal GoLAddr :  std_logic_vector (GoL_ADDR_LEN-1 downto 0);
         signal frameDone : std_logic;
         
         signal master_start :  std_logic;
@@ -94,33 +81,8 @@ architecture tb of VideoDriver_tb is
         signal dia1 : STD_LOGIC_VECTOR(1023 DOWNTO 0);
         signal enb1 : std_logic;
         signal addrb1 : std_logic_vector(9 downto 0);
-
-        procedure WriteValue(
-          signal master_address : in std_logic_vector(32-1 downto 0);
-          signal master_data : out std_logic_vector(32-1 downto 0);
-          signal master_start : std_logic;
-          signal master_done : out std_logic
-          ) is
-        begin
-            wait until master_start = '1';
-            wait for CLK_PER;
-            master_done <= '0';
-            master_data <= master_address;
-            wait for CLK_PER;
-            wait for CLK_PER;
-            wait for CLK_PER;
-            wait for CLK_PER;
-            wait for CLK_PER;
-            master_done <= '1';
---            wait for CLK_PER;
---            master_done <= '0';
-            
-        end WriteValue;
         
-        
-        
-        
-         COMPONENT blk_mem_gen_0
+        COMPONENT blk_mem_gen_0
             PORT (
             clka : IN STD_LOGIC;
             ena : IN STD_LOGIC;
@@ -133,37 +95,34 @@ architecture tb of VideoDriver_tb is
             doutb : OUT STD_LOGIC_VECTOR(1023 DOWNTO 0)
             );
         END COMPONENT;
-begin
-    -- Memory reader/writer (master)
-  init_block_inst : entity work.init_block(rtl)
-    port map (
-        CLK => CLKxCI,
-        resetn => RSTxRBI,
-        --------------------------------------
-        -- master
-        master_start => master_start,
-        master_done => master_done,
-        master_readWrite => master_readWrite,
-        master_address => master_address,
-        master_dataRead => master_dataRead,
+
+        procedure WriteValue(
+          --signal master_address : in std_logic_vector(32-1 downto 0);
+          --signal master_data : out std_logic_vector(32-1 downto 0);
+          signal master_start : std_logic;
+          signal master_done : out std_logic
+          ) is
+        begin
+            wait until master_start = '1';
+            wait for CLK_PER;
+            master_done <= '0';
+--            master_data <= master_address;
+--            wait for CLK_PER;
+--            wait for CLK_PER;
+            wait for CLK_PER;
+            wait for CLK_PER;
+            wait for CLK_PER;
+            master_done <= '1';
+--            wait for CLK_PER;
+--            master_done <= '0';
+            
+        end WriteValue;
         
-        -- Control signals for bram0
-        ena0 => ena0,
-        wea0 => wea0,
-        addra0 => addra0_init_block,
-        dia0 => dia0_init_block,
         
-        -- other signals 
-        GameOfLifeAddress => GameOfLifeAddress,
-        start => init_start,
-        done => init_done
-    );
---=============================================================================
--- COMPONENT DECLARATIONS
---=============================================================================
-    -- master component
-    -- FSM component
-    
+        
+      
+
+
 
 
 --=============================================================================
@@ -171,6 +130,36 @@ begin
 --=============================================================================
 begin
 
+    -- Memory reader/writer (master)
+--  init_block_inst : entity work.init_block(rtl)
+--    port map (
+--        CLK => CLKxCI,
+--        resetn => RSTxRBI,
+--        --------------------------------------
+--        -- master
+--        master_start => master_start,
+--        master_done => master_done,
+--        master_readWrite => master_readWrite,
+--        master_address => master_address,
+--        master_dataRead => master_dataRead,
+        
+--        -- Control signals for bram0
+--        ena0 => ena0,
+--        wea0 => wea0,
+--        addra0 => addra0_init_block,
+--        dia0 => dia0_init_block,
+        
+--        -- other signals 
+--        GameOfLifeAddress => GameOfLifeAddress,
+--        start => init_start,
+--        done => init_done
+--    );
+--=============================================================================
+-- COMPONENT DECLARATIONS
+--=============================================================================
+    -- master component
+    -- FSM component
+    
 
 -- Memory reader/writer (master)
   VideoDriver: entity work.VideoDriver(rtl)
@@ -252,54 +241,39 @@ begin
   p_stim: process
 
   begin
-    
     wait until RSTxRBI = '1';
-    master_done<='1';
-    wait for CLK_PER;
-    wait for CLK_PER;
-    wait for CLK_PER;
-    wait for CLK_PER;
-
-
---bram1_inst : blk_mem_gen_0
---    PORT MAP (
---        clka => CLKxCI,
---        ena => ena1,
---        wea => wea1,
---        addra => addra1,
---        dina => dia1,
---        clkb => CLKxCI,
---        enb => enb1,
---        addrb => addrb1,
---        doutb => dob1
---    );
-
-
-    -- fill working memory
-    wait for CLK_PER;
-    GoLAddr <= std_logic_vector(to_unsigned(0,GoLAddr'length));
-    init_start <= '1';
---    wait for CLK_PER;
---    init_start <= '0';
-    for i in 0 to CHECKERBOARD_SIZE*CHECKERBOARD_SIZE/32-1 loop
-        WriteValue(master_address, master_dataRead, master_start, master_done);
-    end loop;
-    wait until init_done='1';
-    wait until rising_edge(CLKxCI);
-    
-    
-    
-    
-    
+    windowTop <= (others => '0');
+    windowLeft <= (others => '0');
+    frameBufferAddr <= (others => '0');
     work_bram_is <= '0';
+    for i in 0 to 1023 loop
+        ena1 <= '1';
+        wea1 <= "1";
+        addra1 <= std_logic_vector(to_unsigned(i, addra1'length));
+        dia1 <= x"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" when 
+        (i mod 2 = 0) else
+                x"5555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555";
+        wait for CLK_PER;
+    end loop;
+    
+
+        
+    
+    master_done<='1';
+
+    wait for CLK_PER;
 
     VideoDriverStart <= '1';
-  
-    windowTop <= std_logic_vector(to_unsigned(0,windowTop'length));
-    windowLeft <= std_logic_vector(to_unsigned(0,windowTop'length));
-    frameBufferAddr <= std_logic_vector(to_unsigned(0,frameBufferAddr'length));
-
+    wait for CLK_PER;
+    VideoDriverStart <= '0';
+    for i in 0 to CHECKERBOARD_SIZE*CHECKERBOARD_SIZE loop
+        --WriteValue(master_address, master_dataRead, master_start, master_done);
+        WriteValue(master_start, master_done);
+    end loop;
+    
+   
     wait until VideoDriverDone='1';
+    wait for 10*CLK_PER;
     stop(0);
   end process;
 end architecture;

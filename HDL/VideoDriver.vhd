@@ -162,10 +162,12 @@ begin
                 if GoLReady = '1' then
                     GolAddrN <= windowTopRegulated;
                     stateN <= WAIT_BRAM_READ;
+                    bramReadEnable <= '1';
                 end if;
             when LOAD_LINE => 
                 GolAddrN <= windowTopRegulated + lineCounterP;
                 stateN <= WAIT_BRAM_READ;
+                bramReadEnable <= '1';
             when WAIT_BRAM_READ =>
                 stateN <= SAVE_LINE;
                 bramReadEnable <= '1';
@@ -179,15 +181,17 @@ begin
                 else
                     pixelData <= x"00"&x"FF"&x"00"&x"FF";
                 end if;
-                writeStart <= '1';
-                stateN <= WRITE_PIXEL;            
+                if writeReady = '1' then
+                    writeStart <= '1';
+                    stateN <= WRITE_PIXEL;   
+                end if;        
             when WRITE_PIXEL =>
                 if GoLLineP(to_integer(GoL_DATA_LEN-1 - windowLeftRegulated - colCounterP)) = '0' then 
                     pixelData <= x"00"&x"FF"&x"FF"&x"FF";
                 else
                     pixelData <= x"00"&x"FF"&x"00"&x"FF";
                 end if;
-                writeStart <= '1';
+                --writeStart <= '1';
                 if writeReady = '1' then
                     if  to_integer(colCounterP) = WINDOW_WIDTH - 1 then
                         colCounterN <= (others => '0');
@@ -198,7 +202,9 @@ begin
                             lineCounterN <= lineCounterP + 1;
                             stateN <= LOAD_LINE;
                         end if;
-                    else colCounterN <= colCounterP + 1;
+                    else 
+                        colCounterN <= colCounterP + 1;
+                        stateN <= WRITE_PIXEL_WAIT;
                     end if;
                 end if;
             when OTHERS =>
