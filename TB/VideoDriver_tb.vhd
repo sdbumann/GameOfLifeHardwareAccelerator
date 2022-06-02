@@ -10,6 +10,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library work;
+use work.constants.all;
 
 
 --=============================================================================
@@ -47,6 +48,12 @@ architecture tb of VideoDriver_tb is
         
         constant WINDOW_WIDTH : natural := SCREEN_WIDTH/WINDOW_DIVISION_FACTOR;
         constant WINDOW_HEIGHT : natural := SCREEN_HEIGHT/WINDOW_DIVISION_FACTOR;
+        
+        
+        -- Parameters of the AXI master bus interface:
+        constant C_M00_AXI_ADDR_WIDTH  : integer := 32;
+        constant C_M00_AXI_DATA_WIDTH  : integer := 32;
+   
 
         signal CLKxCI  : std_logic;
         signal RSTxRBI : std_logic;
@@ -54,7 +61,7 @@ architecture tb of VideoDriver_tb is
         signal GoLData :  std_logic_vector(GoL_DATA_LEN-1 downto 0);
         signal windowTop :  std_logic_vector(SYS_DATA_LEN-1 downto 0); -- with respect to the 1024 x 1024 grid
         signal windowLeft :  std_logic_vector(SYS_DATA_LEN-1 downto 0); -- with respect to the 1024 x 1024 grid
-        signal writeReady :  std_logic;
+        signal VideoDriverStart, VideoDriverDone :  std_logic;
         signal GoLReady :  std_logic;
         signal frameBufferAddr :  std_logic_vector(SYS_DATA_LEN-1 downto 0);
         
@@ -63,7 +70,69 @@ architecture tb of VideoDriver_tb is
         signal pixelAddr :  std_logic_vector(SYS_ADDR_LEN-1 downto 0);
         signal GoLAddr :  std_logic_vector (GoL_ADDR_LEN-1 downto 0);
         signal frameDone : std_logic;
+        
+        signal master_start :  std_logic;
+        signal master_address :  std_logic_vector(C_M00_AXI_ADDR_WIDTH-1 downto 0);
+        signal master_dataWrite :  std_logic_vector(C_M00_AXI_DATA_WIDTH-1 downto 0);
+        signal master_readWrite :  std_logic;
+        signal master_done : std_logic;
+        
+        signal enb0 : std_logic;
+        signal addrb0 : std_logic_vector(9 downto 0);
+        
+        -- Control signals for bram1
+    
+        signal enb1 : std_logic;
+        signal addrb1 : std_logic_vector(9 downto 0);
+        signal dob0:std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
+        signal dob1:std_logic_vector(CHECKERBOARD_SIZE-1 downto 0);
+        
+        signal work_bram_is : std_logic;
+        
+        signal colCounter_video_driver :  unsigned(GoL_ADDR_LEN-1 downto 0);
+        signal lineCounter_video_driver :  unsigned(GoL_ADDR_LEN-1 downto 0);
 
+        procedure WriteValue(
+          signal master_address : in std_logic_vector(32-1 downto 0);
+          signal master_data : out std_logic_vector(32-1 downto 0);
+          signal master_start : std_logic;
+          signal master_done : out std_logic
+          ) is
+        begin
+            wait until master_start = '1';
+            wait for CLK_PER;
+            master_done <= '0';
+            master_data <= master_address;
+            wait for CLK_PER;
+            wait for CLK_PER;
+            wait for CLK_PER;
+            wait for CLK_PER;
+            wait for CLK_PER;
+            master_done <= '1';
+--            wait for CLK_PER;
+--            master_done <= '0';
+            
+        end WriteValue;
+        
+        signal ena1 : std_logic;
+        signal wea1 : std_logic_vector(0 downto 0);
+        signal addra1 : STD_LOGIC_VECTOR(9 DOWNTO 0);
+        signal dia1 : STD_LOGIC_VECTOR(1023 DOWNTO 0);
+        
+        
+         COMPONENT blk_mem_gen_0
+            PORT (
+            clka : IN STD_LOGIC;
+            ena : IN STD_LOGIC;
+            wea : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+            addra : IN STD_LOGIC_VECTOR(9 DOWNTO 0);
+            dina : IN STD_LOGIC_VECTOR(1023 DOWNTO 0);
+            clkb : IN STD_LOGIC;
+            enb : IN STD_LOGIC;
+            addrb : IN STD_LOGIC_VECTOR(9 DOWNTO 0);
+            doutb : OUT STD_LOGIC_VECTOR(1023 DOWNTO 0)
+            );
+        END COMPONENT;
 --=============================================================================
 -- COMPONENT DECLARATIONS
 --=============================================================================
@@ -80,37 +149,51 @@ begin
 
 -- Memory reader/writer (master)
   VideoDriver: entity work.VideoDriver(rtl)
-    generic map (
-         SYS_DATA_LEN => SYS_DATA_LEN,
-         SYS_ADDR_LEN  => SYS_ADDR_LEN,
-         GoL_DATA_LEN  => GoL_DATA_LEN,
-         GoL_ADDR_LEN   => GoL_ADDR_LEN,
+    port map(
+        CLK =>  CLKxCI,
+        resetn =>  RSTxRBI,
+    
+        windowTop =>  windowTop,
+        windowLeft =>  windowLeft,
         
-         SCREEN_WIDTH  => SCREEN_WIDTH,
-         SCREEN_HEIGHT  => SCREEN_HEIGHT,
-        
-         WINDOW_DIVISION_FACTOR  => WINDOW_DIVISION_FACTOR,
-        
-         WINDOW_WIDTH  => WINDOW_WIDTH,
-         WINDOW_HEIGHT => WINDOW_HEIGHT
-    )
-    port map (
-        CLK => CLKxCI,
-        resetn => RSTxRBI,
-        GoLData => GoLData,
-        windowTop => windowTop,
-        windowLeft => windowLeft,
-        writeReady => writeReady,
-        
-        GoLReady => GoLReady,
+        GoLReady =>  VideoDriverStart,
         frameBufferAddr => frameBufferAddr,
-        writeStart => writeStart,
-        pixelData => pixelData,
-        pixelAddr => pixelAddr,
-        GoLAddr => GoLAddr,
-        frameDone => frameDone
+        
+        master_start => master_start,
+        master_done => master_done,
+        master_address => master_address,
+        master_dataWrite => master_dataWrite,
+        master_readWrite => master_readWrite,
+        
+        frameDone => VideoDriverDone,
+        
+        enb0 => enb0,
+        addrb0 => addrb0,
+        dob0 => dob0,
+    
+    
+        enb1 => enb1,
+        addrb1 => addrb1,
+        dob1 => dob1,
+    
+        work_bram_is => work_bram_is,
+        
+        colCounter_video_driver => colCounter_video_driver,
+        lineCounter_video_driver => lineCounter_video_driver
     );
     
+    bram1_inst : blk_mem_gen_0
+    PORT MAP (
+        clka => CLKxCI,
+        ena => ena1,
+        wea => wea1,
+        addra => addra1,
+        dina => dia1,
+        clkb => CLKxCI,
+        enb => enb1,
+        addrb => addrb1,
+        doutb => dob1
+    );
 
 --=============================================================================
 -- CLOCK PROCESS
@@ -146,24 +229,19 @@ begin
   begin
     
     wait until RSTxRBI = '1';
+    
+    work_bram_is <= '0';
 
-    GoLReady <= '1';
-    GoLData <= x"AA";
-    windowTop <= std_logic_vector(to_unsigned(1,windowTop'length));
-    windowLeft <= std_logic_vector(to_unsigned(1,windowTop'length));
-    frameBufferAddr <= std_logic_vector(to_unsigned(1,frameBufferAddr'length));
-
-    wait until frameDone='1';
-  end process;
+    VideoDriverStart <= '1';
   
-  write_stim: process
-  begin
-    writeReady <= '1';
-    wait until writeStart = '1';
-    writeReady <= '0';
-    wait for CLK_PER;
+    windowTop <= std_logic_vector(to_unsigned(0,windowTop'length));
+    windowLeft <= std_logic_vector(to_unsigned(0,windowTop'length));
+    frameBufferAddr <= std_logic_vector(to_unsigned(0,frameBufferAddr'length));
+
+    wait until VideoDriverDone='1';
+    stop(0);
   end process;
-end tb;
+end architecture;
 --=============================================================================
 -- ARCHITECTURE END
 --=============================================================================
