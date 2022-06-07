@@ -38,4 +38,4 @@ Samuel Bumann - samuel.bumann@epfl.ch <br>
 Mathias Arnold - mathias.arnold@epfl.ch<br>
 
 <br>
-Project Link: [github.com/sdbumann/GameOfLifeHardwareAccelerator](https://github.com/sdbumann/GameOfLifeHardwareAccelerator)
+Project Link: https://github.com/sdbumann/GameOfLifeHardwareAccelerator
